@@ -1,0 +1,1579 @@
+{
+ "01-castello-nebbia.jpg": {
+  "dimensioni": [
+   1125,
+   1496
+  ],
+  "formato": 0.752,
+  "formato_utile_senza_bande": 0.752,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.029,
+   "p2": 0.037,
+   "p5": 0.042,
+   "p25": 0.085,
+   "mediana": 0.177,
+   "p75": 0.503,
+   "p95": 0.949,
+   "p98": 0.953,
+   "bianco_99.5%": 0.953,
+   "contrasto_p75-p25": 0.418,
+   "pixel_bruciati_%": 0.13,
+   "pixel_neri_%": 0.05
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.039,
+     0.053,
+     0.06
+    ],
+    "sbilanciamento": [
+     -0.011,
+     0.002,
+     0.009
+    ],
+    "tinta_gradi": 200.8,
+    "verso": "blu",
+    "intensita": 0.011
+   },
+   "medi": {
+    "rgb_medio": [
+     0.168,
+     0.185,
+     0.175
+    ],
+    "sbilanciamento": [
+     -0.008,
+     0.009,
+     -0.001
+    ],
+    "tinta_gradi": 144.9,
+    "verso": "verde",
+    "intensita": 0.009
+   },
+   "luci": {
+    "rgb_medio": [
+     0.945,
+     0.945,
+     0.945
+    ],
+    "sbilanciamento": [
+     -0.0,
+     0.0,
+     0.0
+    ],
+    "tinta_gradi": 195.3,
+    "verso": "ciano/teal",
+    "intensita": 0.0
+   }
+  },
+  "saturazione": {
+   "media": 0.206,
+   "p90": 0.467
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.023,
+    "saturazione_media": 0.42,
+    "luminosita_media": 0.39
+   },
+   "arancioni": {
+    "quota": 0.098,
+    "saturazione_media": 0.377,
+    "luminosita_media": 0.371
+   },
+   "gialli": {
+    "quota": 0.071,
+    "saturazione_media": 0.31,
+    "luminosita_media": 0.266
+   },
+   "verdi": {
+    "quota": 0.014,
+    "saturazione_media": 0.246,
+    "luminosita_media": 0.116
+   },
+   "azzurri": {
+    "quota": 0.264,
+    "saturazione_media": 0.323,
+    "luminosita_media": 0.11
+   },
+   "blu": {
+    "quota": 0.077,
+    "saturazione_media": 0.404,
+    "luminosita_media": 0.082
+   }
+  },
+  "vignetta_angoli_su_centro": 2.218,
+  "grana_rumore_zone_piatte": 0.0162,
+  "nitidezza_dettaglio": 0.0212
+ },
+ "02-bosco-autunno.jpg": {
+  "dimensioni": [
+   1125,
+   1496
+  ],
+  "formato": 0.752,
+  "formato_utile_senza_bande": 0.752,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.06,
+   "p2": 0.076,
+   "p5": 0.092,
+   "p25": 0.162,
+   "mediana": 0.268,
+   "p75": 0.43,
+   "p95": 0.75,
+   "p98": 0.851,
+   "bianco_99.5%": 0.939,
+   "contrasto_p75-p25": 0.268,
+   "pixel_bruciati_%": 0.11,
+   "pixel_neri_%": 0.0
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.114,
+     0.108,
+     0.093
+    ],
+    "sbilanciamento": [
+     0.009,
+     0.003,
+     -0.012
+    ],
+    "tinta_gradi": 42.9,
+    "verso": "arancio",
+    "intensita": 0.012
+   },
+   "medi": {
+    "rgb_medio": [
+     0.319,
+     0.262,
+     0.187
+    ],
+    "sbilanciamento": [
+     0.063,
+     0.006,
+     -0.069
+    ],
+    "tinta_gradi": 34.1,
+    "verso": "arancio",
+    "intensita": 0.069
+   },
+   "luci": {
+    "rgb_medio": [
+     0.78,
+     0.699,
+     0.541
+    ],
+    "sbilanciamento": [
+     0.107,
+     0.026,
+     -0.133
+    ],
+    "tinta_gradi": 39.7,
+    "verso": "arancio",
+    "intensita": 0.133
+   }
+  },
+  "saturazione": {
+   "media": 0.355,
+   "p90": 0.633
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.109,
+    "saturazione_media": 0.499,
+    "luminosita_media": 0.399
+   },
+   "arancioni": {
+    "quota": 0.568,
+    "saturazione_media": 0.459,
+    "luminosita_media": 0.429
+   },
+   "gialli": {
+    "quota": 0.327,
+    "saturazione_media": 0.388,
+    "luminosita_media": 0.389
+   },
+   "azzurri": {
+    "quota": 0.017,
+    "saturazione_media": 0.203,
+    "luminosita_media": 0.102
+   }
+  },
+  "vignetta_angoli_su_centro": 0.743,
+  "grana_rumore_zone_piatte": 0.0454,
+  "nitidezza_dettaglio": 0.0407
+ },
+ "03-cucina-isola-tramonto.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.105,
+   "p2": 0.157,
+   "p5": 0.203,
+   "p25": 0.295,
+   "mediana": 0.395,
+   "p75": 0.511,
+   "p95": 0.687,
+   "p98": 0.911,
+   "bianco_99.5%": 0.957,
+   "contrasto_p75-p25": 0.216,
+   "pixel_bruciati_%": 0.02,
+   "pixel_neri_%": 0.0
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.315,
+     0.216,
+     0.129
+    ],
+    "sbilanciamento": [
+     0.095,
+     -0.004,
+     -0.091
+    ],
+    "tinta_gradi": 28.2,
+    "verso": "arancio",
+    "intensita": 0.095
+   },
+   "medi": {
+    "rgb_medio": [
+     0.478,
+     0.381,
+     0.273
+    ],
+    "sbilanciamento": [
+     0.101,
+     0.004,
+     -0.104
+    ],
+    "tinta_gradi": 31.6,
+    "verso": "arancio",
+    "intensita": 0.104
+   },
+   "luci": {
+    "rgb_medio": [
+     0.744,
+     0.67,
+     0.554
+    ],
+    "sbilanciamento": [
+     0.088,
+     0.014,
+     -0.102
+    ],
+    "tinta_gradi": 36.8,
+    "verso": "arancio",
+    "intensita": 0.102
+   }
+  },
+  "saturazione": {
+   "media": 0.448,
+   "p90": 0.593
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.186,
+    "saturazione_media": 0.485,
+    "luminosita_media": 0.425
+   },
+   "arancioni": {
+    "quota": 0.85,
+    "saturazione_media": 0.472,
+    "luminosita_media": 0.471
+   },
+   "gialli": {
+    "quota": 0.284,
+    "saturazione_media": 0.463,
+    "luminosita_media": 0.509
+   }
+  },
+  "vignetta_angoli_su_centro": 1.025,
+  "grana_rumore_zone_piatte": 0.0021,
+  "nitidezza_dettaglio": 0.0042
+ },
+ "04-soggiorno-ombra-pianta.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.047,
+   "p2": 0.092,
+   "p5": 0.139,
+   "p25": 0.286,
+   "mediana": 0.419,
+   "p75": 0.557,
+   "p95": 0.844,
+   "p98": 0.862,
+   "bianco_99.5%": 0.885,
+   "contrasto_p75-p25": 0.271,
+   "pixel_bruciati_%": 0.0,
+   "pixel_neri_%": 0.01
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.267,
+     0.165,
+     0.086
+    ],
+    "sbilanciamento": [
+     0.094,
+     -0.008,
+     -0.087
+    ],
+    "tinta_gradi": 26.1,
+    "verso": "arancio",
+    "intensita": 0.094
+   },
+   "medi": {
+    "rgb_medio": [
+     0.518,
+     0.403,
+     0.282
+    ],
+    "sbilanciamento": [
+     0.117,
+     0.002,
+     -0.119
+    ],
+    "tinta_gradi": 30.8,
+    "verso": "arancio",
+    "intensita": 0.119
+   },
+   "luci": {
+    "rgb_medio": [
+     0.83,
+     0.789,
+     0.702
+    ],
+    "sbilanciamento": [
+     0.056,
+     0.016,
+     -0.072
+    ],
+    "tinta_gradi": 40.9,
+    "verso": "arancio",
+    "intensita": 0.072
+   }
+  },
+  "saturazione": {
+   "media": 0.458,
+   "p90": 0.708
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.249,
+    "saturazione_media": 0.527,
+    "luminosita_media": 0.461
+   },
+   "arancioni": {
+    "quota": 0.822,
+    "saturazione_media": 0.479,
+    "luminosita_media": 0.514
+   },
+   "gialli": {
+    "quota": 0.24,
+    "saturazione_media": 0.458,
+    "luminosita_media": 0.538
+   }
+  },
+  "vignetta_angoli_su_centro": 0.82,
+  "grana_rumore_zone_piatte": 0.0044,
+  "nitidezza_dettaglio": 0.0063
+ },
+ "05-isola-archi-dettaglio.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.018,
+   "p2": 0.035,
+   "p5": 0.073,
+   "p25": 0.323,
+   "mediana": 0.44,
+   "p75": 0.552,
+   "p95": 0.767,
+   "p98": 0.832,
+   "bianco_99.5%": 0.852,
+   "contrasto_p75-p25": 0.228,
+   "pixel_bruciati_%": 0.0,
+   "pixel_neri_%": 0.14
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.228,
+     0.149,
+     0.08
+    ],
+    "sbilanciamento": [
+     0.076,
+     -0.003,
+     -0.072
+    ],
+    "tinta_gradi": 28.0,
+    "verso": "arancio",
+    "intensita": 0.076
+   },
+   "medi": {
+    "rgb_medio": [
+     0.512,
+     0.428,
+     0.33
+    ],
+    "sbilanciamento": [
+     0.089,
+     0.005,
+     -0.093
+    ],
+    "tinta_gradi": 32.3,
+    "verso": "arancio",
+    "intensita": 0.093
+   },
+   "luci": {
+    "rgb_medio": [
+     0.799,
+     0.741,
+     0.676
+    ],
+    "sbilanciamento": [
+     0.06,
+     0.002,
+     -0.063
+    ],
+    "tinta_gradi": 31.7,
+    "verso": "arancio",
+    "intensita": 0.063
+   }
+  },
+  "saturazione": {
+   "media": 0.408,
+   "p90": 0.706
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.202,
+    "saturazione_media": 0.487,
+    "luminosita_media": 0.46
+   },
+   "arancioni": {
+    "quota": 0.835,
+    "saturazione_media": 0.423,
+    "luminosita_media": 0.503
+   },
+   "gialli": {
+    "quota": 0.271,
+    "saturazione_media": 0.401,
+    "luminosita_media": 0.506
+   }
+  },
+  "vignetta_angoli_su_centro": 0.986,
+  "grana_rumore_zone_piatte": 0.0024,
+  "nitidezza_dettaglio": 0.0044
+ },
+ "06-soggiorno-colonna-tende.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.036,
+   "p2": 0.077,
+   "p5": 0.131,
+   "p25": 0.385,
+   "mediana": 0.559,
+   "p75": 0.695,
+   "p95": 0.904,
+   "p98": 0.944,
+   "bianco_99.5%": 0.957,
+   "contrasto_p75-p25": 0.31,
+   "pixel_bruciati_%": 0.01,
+   "pixel_neri_%": 0.04
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.302,
+     0.191,
+     0.098
+    ],
+    "sbilanciamento": [
+     0.105,
+     -0.006,
+     -0.099
+    ],
+    "tinta_gradi": 27.2,
+    "verso": "arancio",
+    "intensita": 0.105
+   },
+   "medi": {
+    "rgb_medio": [
+     0.634,
+     0.546,
+     0.435
+    ],
+    "sbilanciamento": [
+     0.096,
+     0.007,
+     -0.103
+    ],
+    "tinta_gradi": 33.3,
+    "verso": "arancio",
+    "intensita": 0.103
+   },
+   "luci": {
+    "rgb_medio": [
+     0.891,
+     0.862,
+     0.827
+    ],
+    "sbilanciamento": [
+     0.031,
+     0.002,
+     -0.033
+    ],
+    "tinta_gradi": 33.1,
+    "verso": "arancio",
+    "intensita": 0.033
+   }
+  },
+  "saturazione": {
+   "media": 0.354,
+   "p90": 0.673
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.176,
+    "saturazione_media": 0.497,
+    "luminosita_media": 0.501
+   },
+   "arancioni": {
+    "quota": 0.734,
+    "saturazione_media": 0.406,
+    "luminosita_media": 0.564
+   },
+   "gialli": {
+    "quota": 0.25,
+    "saturazione_media": 0.359,
+    "luminosita_media": 0.588
+   }
+  },
+  "vignetta_angoli_su_centro": 1.57,
+  "grana_rumore_zone_piatte": 0.0048,
+  "nitidezza_dettaglio": 0.0073
+ },
+ "07-corridoio-lucernario.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.004,
+   "p2": 0.078,
+   "p5": 0.301,
+   "p25": 0.418,
+   "mediana": 0.487,
+   "p75": 0.557,
+   "p95": 0.82,
+   "p98": 0.845,
+   "bianco_99.5%": 0.902,
+   "contrasto_p75-p25": 0.139,
+   "pixel_bruciati_%": 0.15,
+   "pixel_neri_%": 0.64
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.397,
+     0.306,
+     0.2
+    ],
+    "sbilanciamento": [
+     0.096,
+     0.005,
+     -0.101
+    ],
+    "tinta_gradi": 32.3,
+    "verso": "arancio",
+    "intensita": 0.101
+   },
+   "medi": {
+    "rgb_medio": [
+     0.583,
+     0.468,
+     0.339
+    ],
+    "sbilanciamento": [
+     0.12,
+     0.004,
+     -0.124
+    ],
+    "tinta_gradi": 31.6,
+    "verso": "arancio",
+    "intensita": 0.124
+   },
+   "luci": {
+    "rgb_medio": [
+     0.839,
+     0.762,
+     0.671
+    ],
+    "sbilanciamento": [
+     0.081,
+     0.005,
+     -0.086
+    ],
+    "tinta_gradi": 32.6,
+    "verso": "arancio",
+    "intensita": 0.086
+   }
+  },
+  "saturazione": {
+   "media": 0.405,
+   "p90": 0.524
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.19,
+    "saturazione_media": 0.433,
+    "luminosita_media": 0.572
+   },
+   "arancioni": {
+    "quota": 0.888,
+    "saturazione_media": 0.42,
+    "luminosita_media": 0.589
+   },
+   "gialli": {
+    "quota": 0.287,
+    "saturazione_media": 0.416,
+    "luminosita_media": 0.59
+   }
+  },
+  "vignetta_angoli_su_centro": 1.254,
+  "grana_rumore_zone_piatte": 0.0015,
+  "nitidezza_dettaglio": 0.0032
+ },
+ "08-cucina-curva.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.044,
+   "p2": 0.079,
+   "p5": 0.111,
+   "p25": 0.275,
+   "mediana": 0.464,
+   "p75": 0.638,
+   "p95": 0.752,
+   "p98": 0.806,
+   "bianco_99.5%": 0.892,
+   "contrasto_p75-p25": 0.363,
+   "pixel_bruciati_%": 0.08,
+   "pixel_neri_%": 0.12
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.213,
+     0.137,
+     0.057
+    ],
+    "sbilanciamento": [
+     0.077,
+     0.001,
+     -0.079
+    ],
+    "tinta_gradi": 30.6,
+    "verso": "arancio",
+    "intensita": 0.079
+   },
+   "medi": {
+    "rgb_medio": [
+     0.555,
+     0.46,
+     0.335
+    ],
+    "sbilanciamento": [
+     0.105,
+     0.01,
+     -0.115
+    ],
+    "tinta_gradi": 34.1,
+    "verso": "arancio",
+    "intensita": 0.115
+   },
+   "luci": {
+    "rgb_medio": [
+     0.796,
+     0.742,
+     0.65
+    ],
+    "sbilanciamento": [
+     0.067,
+     0.012,
+     -0.079
+    ],
+    "tinta_gradi": 37.7,
+    "verso": "arancio",
+    "intensita": 0.079
+   }
+  },
+  "saturazione": {
+   "media": 0.439,
+   "p90": 0.771
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.153,
+    "saturazione_media": 0.518,
+    "luminosita_media": 0.454
+   },
+   "arancioni": {
+    "quota": 0.832,
+    "saturazione_media": 0.471,
+    "luminosita_media": 0.508
+   },
+   "gialli": {
+    "quota": 0.316,
+    "saturazione_media": 0.441,
+    "luminosita_media": 0.537
+   }
+  },
+  "vignetta_angoli_su_centro": 0.81,
+  "grana_rumore_zone_piatte": 0.003,
+  "nitidezza_dettaglio": 0.0052
+ },
+ "09-quadro-dettaglio.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.037,
+   "p2": 0.046,
+   "p5": 0.094,
+   "p25": 0.226,
+   "mediana": 0.412,
+   "p75": 0.592,
+   "p95": 0.713,
+   "p98": 0.794,
+   "bianco_99.5%": 0.979,
+   "contrasto_p75-p25": 0.365,
+   "pixel_bruciati_%": 0.2,
+   "pixel_neri_%": 0.0
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.236,
+     0.092,
+     0.06
+    ],
+    "sbilanciamento": [
+     0.107,
+     -0.037,
+     -0.069
+    ],
+    "tinta_gradi": 11.0,
+    "verso": "rosso",
+    "intensita": 0.107
+   },
+   "medi": {
+    "rgb_medio": [
+     0.561,
+     0.381,
+     0.252
+    ],
+    "sbilanciamento": [
+     0.163,
+     -0.017,
+     -0.146
+    ],
+    "tinta_gradi": 25.0,
+    "verso": "arancio",
+    "intensita": 0.163
+   },
+   "luci": {
+    "rgb_medio": [
+     0.819,
+     0.699,
+     0.558
+    ],
+    "sbilanciamento": [
+     0.127,
+     0.007,
+     -0.134
+    ],
+    "tinta_gradi": 32.4,
+    "verso": "arancio",
+    "intensita": 0.134
+   }
+  },
+  "saturazione": {
+   "media": 0.537,
+   "p90": 0.768
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.425,
+    "saturazione_media": 0.605,
+    "luminosita_media": 0.457
+   },
+   "arancioni": {
+    "quota": 0.753,
+    "saturazione_media": 0.522,
+    "luminosita_media": 0.569
+   },
+   "gialli": {
+    "quota": 0.152,
+    "saturazione_media": 0.436,
+    "luminosita_media": 0.665
+   }
+  },
+  "vignetta_angoli_su_centro": 1.771,
+  "grana_rumore_zone_piatte": 0.007,
+  "nitidezza_dettaglio": 0.0082
+ },
+ "10-soggiorno-luce-radente.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.03,
+   "p2": 0.051,
+   "p5": 0.087,
+   "p25": 0.326,
+   "mediana": 0.446,
+   "p75": 0.542,
+   "p95": 0.819,
+   "p98": 0.888,
+   "bianco_99.5%": 0.91,
+   "contrasto_p75-p25": 0.217,
+   "pixel_bruciati_%": 0.0,
+   "pixel_neri_%": 0.01
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.245,
+     0.137,
+     0.072
+    ],
+    "sbilanciamento": [
+     0.093,
+     -0.014,
+     -0.079
+    ],
+    "tinta_gradi": 22.5,
+    "verso": "arancio",
+    "intensita": 0.093
+   },
+   "medi": {
+    "rgb_medio": [
+     0.551,
+     0.425,
+     0.308
+    ],
+    "sbilanciamento": [
+     0.123,
+     -0.003,
+     -0.12
+    ],
+    "tinta_gradi": 28.9,
+    "verso": "arancio",
+    "intensita": 0.123
+   },
+   "luci": {
+    "rgb_medio": [
+     0.826,
+     0.746,
+     0.647
+    ],
+    "sbilanciamento": [
+     0.087,
+     0.006,
+     -0.092
+    ],
+    "tinta_gradi": 32.9,
+    "verso": "arancio",
+    "intensita": 0.092
+   }
+  },
+  "saturazione": {
+   "media": 0.457,
+   "p90": 0.727
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.266,
+    "saturazione_media": 0.542,
+    "luminosita_media": 0.46
+   },
+   "arancioni": {
+    "quota": 0.846,
+    "saturazione_media": 0.459,
+    "luminosita_media": 0.523
+   },
+   "gialli": {
+    "quota": 0.233,
+    "saturazione_media": 0.407,
+    "luminosita_media": 0.559
+   }
+  },
+  "vignetta_angoli_su_centro": 0.952,
+  "grana_rumore_zone_piatte": 0.0044,
+  "nitidezza_dettaglio": 0.0058
+ },
+ "11-corridoio-buio-libreria.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.008,
+   "p2": 0.022,
+   "p5": 0.031,
+   "p25": 0.136,
+   "mediana": 0.2,
+   "p75": 0.275,
+   "p95": 0.657,
+   "p98": 0.753,
+   "bianco_99.5%": 0.808,
+   "contrasto_p75-p25": 0.139,
+   "pixel_bruciati_%": 0.0,
+   "pixel_neri_%": 0.53
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.049,
+     0.041,
+     0.018
+    ],
+    "sbilanciamento": [
+     0.013,
+     0.005,
+     -0.018
+    ],
+    "tinta_gradi": 44.2,
+    "verso": "arancio",
+    "intensita": 0.018
+   },
+   "medi": {
+    "rgb_medio": [
+     0.223,
+     0.195,
+     0.136
+    ],
+    "sbilanciamento": [
+     0.039,
+     0.01,
+     -0.048
+    ],
+    "tinta_gradi": 40.1,
+    "verso": "arancio",
+    "intensita": 0.048
+   },
+   "luci": {
+    "rgb_medio": [
+     0.681,
+     0.578,
+     0.464
+    ],
+    "sbilanciamento": [
+     0.107,
+     0.004,
+     -0.11
+    ],
+    "tinta_gradi": 31.6,
+    "verso": "arancio",
+    "intensita": 0.11
+   }
+  },
+  "saturazione": {
+   "media": 0.464,
+   "p90": 0.68
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.096,
+    "saturazione_media": 0.462,
+    "luminosita_media": 0.39
+   },
+   "arancioni": {
+    "quota": 0.758,
+    "saturazione_media": 0.458,
+    "luminosita_media": 0.307
+   },
+   "gialli": {
+    "quota": 0.465,
+    "saturazione_media": 0.476,
+    "luminosita_media": 0.23
+   }
+  },
+  "vignetta_angoli_su_centro": 0.412,
+  "grana_rumore_zone_piatte": 0.0014,
+  "nitidezza_dettaglio": 0.0038
+ },
+ "12-titolo-colline.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.0,
+   "p2": 0.004,
+   "p5": 0.02,
+   "p25": 0.068,
+   "mediana": 0.123,
+   "p75": 0.275,
+   "p95": 0.536,
+   "p98": 0.565,
+   "bianco_99.5%": 0.741,
+   "contrasto_p75-p25": 0.207,
+   "pixel_bruciati_%": 0.22,
+   "pixel_neri_%": 3.0
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.03,
+     0.033,
+     0.016
+    ],
+    "sbilanciamento": [
+     0.004,
+     0.007,
+     -0.01
+    ],
+    "tinta_gradi": 71.1,
+    "verso": "verde",
+    "intensita": 0.01
+   },
+   "medi": {
+    "rgb_medio": [
+     0.129,
+     0.128,
+     0.084
+    ],
+    "sbilanciamento": [
+     0.015,
+     0.014,
+     -0.029
+    ],
+    "tinta_gradi": 59.2,
+    "verso": "giallo",
+    "intensita": 0.029
+   },
+   "luci": {
+    "rgb_medio": [
+     0.443,
+     0.449,
+     0.429
+    ],
+    "sbilanciamento": [
+     0.003,
+     0.008,
+     -0.011
+    ],
+    "tinta_gradi": 78.2,
+    "verso": "verde",
+    "intensita": 0.011
+   }
+  },
+  "saturazione": {
+   "media": 0.317,
+   "p90": 0.788
+  },
+  "tinte_presenti": {
+   "arancioni": {
+    "quota": 0.146,
+    "saturazione_media": 0.676,
+    "luminosita_media": 0.115
+   },
+   "gialli": {
+    "quota": 0.261,
+    "saturazione_media": 0.595,
+    "luminosita_media": 0.104
+   },
+   "verdi": {
+    "quota": 0.067,
+    "saturazione_media": 0.348,
+    "luminosita_media": 0.066
+   },
+   "azzurri": {
+    "quota": 0.042,
+    "saturazione_media": 0.237,
+    "luminosita_media": 0.126
+   }
+  },
+  "vignetta_angoli_su_centro": 0.997,
+  "grana_rumore_zone_piatte": 0.0033,
+  "nitidezza_dettaglio": 0.0043
+ },
+ "13-legno-persona-passo.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.031,
+   "p2": 0.05,
+   "p5": 0.087,
+   "p25": 0.146,
+   "mediana": 0.206,
+   "p75": 0.285,
+   "p95": 0.725,
+   "p98": 0.779,
+   "bianco_99.5%": 0.822,
+   "contrasto_p75-p25": 0.139,
+   "pixel_bruciati_%": 0.0,
+   "pixel_neri_%": 0.0
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.133,
+     0.093,
+     0.056
+    ],
+    "sbilanciamento": [
+     0.039,
+     -0.001,
+     -0.038
+    ],
+    "tinta_gradi": 28.9,
+    "verso": "arancio",
+    "intensita": 0.039
+   },
+   "medi": {
+    "rgb_medio": [
+     0.267,
+     0.195,
+     0.134
+    ],
+    "sbilanciamento": [
+     0.068,
+     -0.004,
+     -0.065
+    ],
+    "tinta_gradi": 27.4,
+    "verso": "arancio",
+    "intensita": 0.068
+   },
+   "luci": {
+    "rgb_medio": [
+     0.703,
+     0.663,
+     0.607
+    ],
+    "sbilanciamento": [
+     0.045,
+     0.005,
+     -0.051
+    ],
+    "tinta_gradi": 35.2,
+    "verso": "arancio",
+    "intensita": 0.051
+   }
+  },
+  "saturazione": {
+   "media": 0.435,
+   "p90": 0.646
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.242,
+    "saturazione_media": 0.494,
+    "luminosita_media": 0.288
+   },
+   "arancioni": {
+    "quota": 0.779,
+    "saturazione_media": 0.475,
+    "luminosita_media": 0.291
+   },
+   "gialli": {
+    "quota": 0.226,
+    "saturazione_media": 0.436,
+    "luminosita_media": 0.275
+   }
+  },
+  "vignetta_angoli_su_centro": 1.423,
+  "grana_rumore_zone_piatte": 0.0026,
+  "nitidezza_dettaglio": 0.0038
+ },
+ "14-legno-libreria.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.015,
+   "p2": 0.031,
+   "p5": 0.053,
+   "p25": 0.119,
+   "mediana": 0.159,
+   "p75": 0.217,
+   "p95": 0.363,
+   "p98": 0.417,
+   "bianco_99.5%": 0.514,
+   "contrasto_p75-p25": 0.099,
+   "pixel_bruciati_%": 0.0,
+   "pixel_neri_%": 0.21
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.103,
+     0.064,
+     0.039
+    ],
+    "sbilanciamento": [
+     0.034,
+     -0.004,
+     -0.03
+    ],
+    "tinta_gradi": 23.8,
+    "verso": "arancio",
+    "intensita": 0.034
+   },
+   "medi": {
+    "rgb_medio": [
+     0.208,
+     0.15,
+     0.101
+    ],
+    "sbilanciamento": [
+     0.055,
+     -0.003,
+     -0.052
+    ],
+    "tinta_gradi": 27.3,
+    "verso": "arancio",
+    "intensita": 0.055
+   },
+   "luci": {
+    "rgb_medio": [
+     0.417,
+     0.333,
+     0.262
+    ],
+    "sbilanciamento": [
+     0.079,
+     -0.004,
+     -0.075
+    ],
+    "tinta_gradi": 27.5,
+    "verso": "arancio",
+    "intensita": 0.079
+   }
+  },
+  "saturazione": {
+   "media": 0.507,
+   "p90": 0.674
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.328,
+    "saturazione_media": 0.532,
+    "luminosita_media": 0.224
+   },
+   "arancioni": {
+    "quota": 0.855,
+    "saturazione_media": 0.51,
+    "luminosita_media": 0.228
+   },
+   "gialli": {
+    "quota": 0.178,
+    "saturazione_media": 0.483,
+    "luminosita_media": 0.222
+   }
+  },
+  "vignetta_angoli_su_centro": 0.873,
+  "grana_rumore_zone_piatte": 0.002,
+  "nitidezza_dettaglio": 0.0048
+ },
+ "15-cucina-legno-scura.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.012,
+   "p2": 0.016,
+   "p5": 0.029,
+   "p25": 0.078,
+   "mediana": 0.149,
+   "p75": 0.2,
+   "p95": 0.299,
+   "p98": 0.36,
+   "bianco_99.5%": 0.483,
+   "contrasto_p75-p25": 0.123,
+   "pixel_bruciati_%": 0.0,
+   "pixel_neri_%": 0.31
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.051,
+     0.037,
+     0.021
+    ],
+    "sbilanciamento": [
+     0.015,
+     0.0,
+     -0.015
+    ],
+    "tinta_gradi": 30.9,
+    "verso": "arancio",
+    "intensita": 0.015
+   },
+   "medi": {
+    "rgb_medio": [
+     0.194,
+     0.141,
+     0.091
+    ],
+    "sbilanciamento": [
+     0.052,
+     -0.001,
+     -0.051
+    ],
+    "tinta_gradi": 28.8,
+    "verso": "arancio",
+    "intensita": 0.052
+   },
+   "luci": {
+    "rgb_medio": [
+     0.334,
+     0.283,
+     0.23
+    ],
+    "sbilanciamento": [
+     0.052,
+     0.001,
+     -0.053
+    ],
+    "tinta_gradi": 30.9,
+    "verso": "arancio",
+    "intensita": 0.053
+   }
+  },
+  "saturazione": {
+   "media": 0.481,
+   "p90": 0.684
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.234,
+    "saturazione_media": 0.516,
+    "luminosita_media": 0.191
+   },
+   "arancioni": {
+    "quota": 0.809,
+    "saturazione_media": 0.5,
+    "luminosita_media": 0.183
+   },
+   "gialli": {
+    "quota": 0.269,
+    "saturazione_media": 0.472,
+    "luminosita_media": 0.164
+   }
+  },
+  "vignetta_angoli_su_centro": 1.598,
+  "grana_rumore_zone_piatte": 0.0021,
+  "nitidezza_dettaglio": 0.0031
+ },
+ "16-quadro-muro-tende.jpg": {
+  "dimensioni": [
+   1996,
+   1121
+  ],
+  "formato": 1.781,
+  "formato_utile_senza_bande": 1.781,
+  "bande_nere_px": [
+   0,
+   0
+  ],
+  "luminosita": {
+   "nero_0.5%": 0.044,
+   "p2": 0.064,
+   "p5": 0.093,
+   "p25": 0.36,
+   "mediana": 0.451,
+   "p75": 0.597,
+   "p95": 0.73,
+   "p98": 0.775,
+   "bianco_99.5%": 0.811,
+   "contrasto_p75-p25": 0.238,
+   "pixel_bruciati_%": 0.0,
+   "pixel_neri_%": 0.0
+  },
+  "colore_zone": {
+   "ombre": {
+    "rgb_medio": [
+     0.315,
+     0.14,
+     0.088
+    ],
+    "sbilanciamento": [
+     0.134,
+     -0.041,
+     -0.093
+    ],
+    "tinta_gradi": 13.8,
+    "verso": "rosso",
+    "intensita": 0.134
+   },
+   "medi": {
+    "rgb_medio": [
+     0.584,
+     0.434,
+     0.286
+    ],
+    "sbilanciamento": [
+     0.149,
+     -0.001,
+     -0.149
+    ],
+    "tinta_gradi": 29.7,
+    "verso": "arancio",
+    "intensita": 0.149
+   },
+   "luci": {
+    "rgb_medio": [
+     0.815,
+     0.702,
+     0.523
+    ],
+    "sbilanciamento": [
+     0.135,
+     0.022,
+     -0.157
+    ],
+    "tinta_gradi": 36.8,
+    "verso": "arancio",
+    "intensita": 0.157
+   }
+  },
+  "saturazione": {
+   "media": 0.527,
+   "p90": 0.736
+  },
+  "tinte_presenti": {
+   "rossi": {
+    "quota": 0.297,
+    "saturazione_media": 0.611,
+    "luminosita_media": 0.464
+   },
+   "arancioni": {
+    "quota": 0.835,
+    "saturazione_media": 0.515,
+    "luminosita_media": 0.602
+   },
+   "gialli": {
+    "quota": 0.244,
+    "saturazione_media": 0.46,
+    "luminosita_media": 0.67
+   }
+  },
+  "vignetta_angoli_su_centro": 1.178,
+  "grana_rumore_zone_piatte": 0.0083,
+  "nitidezza_dettaglio": 0.0087
+ }
+}

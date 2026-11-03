@@ -1,40 +1,164 @@
 {
-  "_nota": "Look di /editing. Valori NEUTRI finché non analizziamo le foto di esempio: così non cambia nulla. Ogni voce è spiegata in SKILL.md.",
-  "ritaglio": { "formato": null, "centro_verticale": 0.5 },
+  "_nota": "Look 'Luce dorata' v1, ricavato dai 16 esempi del 2026-11-03 (editing/esempi/2026-11-03). Bozza: da confermare con frame veri dei clienti.",
+  "ritaglio": {
+    "formato": null,
+    "centro_verticale": 0.5
+  },
   "base": {
-    "esposizione": 0.0,
-    "temperatura": 0,
-    "tinta": 0,
-    "saturazione": 1.0,
+    "esposizione": -0.05,
+    "temperatura": 40,
+    "tinta": 6,
+    "saturazione": 0.92,
     "vividezza": 0.0,
-    "compressione_luci_da": 1.0
+    "compressione_luci_da": 0.75
   },
   "curve": {
-    "generale": null,
-    "r": null,
-    "g": null,
-    "b": null,
+    "generale": [
+      [
+        0,
+        0.012
+      ],
+      [
+        0.12,
+        0.07
+      ],
+      [
+        0.5,
+        0.48
+      ],
+      [
+        0.85,
+        0.85
+      ],
+      [
+        1,
+        0.955
+      ]
+    ],
+    "r": [
+      [
+        0,
+        0.0
+      ],
+      [
+        0.5,
+        0.515
+      ],
+      [
+        1,
+        1.0
+      ]
+    ],
+    "g": [
+      [
+        0,
+        0
+      ],
+      [
+        0.5,
+        0.5
+      ],
+      [
+        1,
+        0.975
+      ]
+    ],
+    "b": [
+      [
+        0,
+        0
+      ],
+      [
+        0.5,
+        0.465
+      ],
+      [
+        1,
+        0.9
+      ]
+    ],
     "tabelle": null
   },
   "toni": {
-    "ombre": { "tinta_gradi": 190, "forza": 0.0 },
-    "medi":  { "tinta_gradi": 35,  "forza": 0.0 },
-    "luci":  { "tinta_gradi": 40,  "forza": 0.0 }
+    "ombre": {
+      "tinta_gradi": 22,
+      "forza": 0.05
+    },
+    "medi": {
+      "tinta_gradi": 27,
+      "forza": 0.04
+    },
+    "luci": {
+      "tinta_gradi": 32,
+      "forza": 0.085
+    }
   },
   "colori": {
-    "rossi":     { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 },
-    "arancioni": { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 },
-    "gialli":    { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 },
-    "verdi":     { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 },
-    "azzurri":   { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 },
-    "blu":       { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 },
-    "viola":     { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 }
+    "rossi": {
+      "tinta": 6,
+      "saturazione": -0.05,
+      "luminosita": 0.0
+    },
+    "arancioni": {
+      "tinta": 0,
+      "saturazione": 0.0,
+      "luminosita": 0.0
+    },
+    "gialli": {
+      "tinta": -14,
+      "saturazione": -0.1,
+      "luminosita": 0.0
+    },
+    "verdi": {
+      "tinta": -20,
+      "saturazione": -0.4,
+      "luminosita": -0.12
+    },
+    "azzurri": {
+      "tinta": 0,
+      "saturazione": -0.55,
+      "luminosita": 0.0
+    },
+    "blu": {
+      "tinta": 0,
+      "saturazione": -0.55,
+      "luminosita": 0.05
+    },
+    "viola": {
+      "tinta": 0,
+      "saturazione": -0.4,
+      "luminosita": 0.0
+    }
   },
   "luce": {
-    "halation": { "forza": 0.0, "soglia": 0.8, "raggio": 0.006, "colore": [1.0, 0.35, 0.15] },
-    "bloom":    { "forza": 0.0, "soglia": 0.7, "raggio": 0.02 }
+    "halation": {
+      "forza": 0.03,
+      "soglia": 0.8,
+      "raggio": 0.006,
+      "colore": [
+        1.0,
+        0.35,
+        0.15
+      ]
+    },
+    "bloom": {
+      "forza": 0.08,
+      "soglia": 0.72,
+      "raggio": 0.025
+    }
   },
-  "vignetta": { "forza": 0.0, "inizio": 0.35, "morbidezza": 0.6, "rotondita": 0.5 },
-  "grana": { "forza": 0.0, "dimensione": 0.8, "colore": 0.0 },
-  "bande": { "formato": null }
+  "vignetta": {
+    "forza": 0.18,
+    "inizio": 0.4,
+    "morbidezza": 0.7,
+    "rotondita": 0.5
+  },
+  "grana": {
+    "forza": 0.006,
+    "dimensione": 0.6,
+    "colore": 0.0
+  },
+  "bande": {
+    "formato": null
+  }
 }

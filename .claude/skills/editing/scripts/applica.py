@@ -173,7 +173,17 @@ def bande(img, formato):
     return out
 
 
+def area(img, box):
+    """Tiene solo la zona [x0, y0, x1, y1] (frazioni 0..1 di larghezza e altezza)."""
+    if not box:
+        return img
+    h, w = img.shape[:2]
+    x0, y0, x1, y1 = box
+    return img[int(round(y0 * h)):int(round(y1 * h)), int(round(x0 * w)):int(round(x1 * w))]
+
+
 def applica(img, look, seme=0):
+    img = area(img, look.get("ritaglio", {}).get("area"))
     img = ritaglia(img, look.get("ritaglio", {}).get("formato"), look.get("ritaglio", {}).get("centro_verticale", 0.5))
     diag = float(np.hypot(*img.shape[:2]))
     b = look.get("base", {})

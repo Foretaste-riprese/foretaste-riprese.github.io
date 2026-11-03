@@ -1,1 +1,4 @@
 __pycache__/
+# foto dei clienti: mai nel repository pubblico
+editing/*/
+!editing/esempi/

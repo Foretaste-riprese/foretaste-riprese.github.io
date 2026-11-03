@@ -11,7 +11,7 @@ Rispondi in **italiano**, con frasi semplici. Spesso lavora dall'iPhone: mostrag
 
 ## Stato della skill
 
-> **Look v1 ("Luce dorata"), bozza.** Ricavato da 16 esempi (2026-11-03): 14 frame di video di interni di lusso (stile The Local Project) e 2 foto Instagram (castello nella nebbia, bosco d'autunno). Sono tutte foto "finite", senza originali. Il look è stato tarato rendendole piatte come uno scatto di telefono e poi ricolorandole (tavola in `editing/esempi/2026-11-03/prova-look-v1.jpg`). Da confermare sui primi frame veri dei clienti (iPhone, grandangolo 0,5×). Gli esempi sono screenshot compressi: grana e nitidezza misurate lì non sono affidabili.
+> **Look v1 ("Luce dorata"), bozza.** Primo frame vero provato il 2026-11-03 (soggiorno, iPhone 0,5×, luce di mezzogiorno): colore buono, grana abbassata a 0,004. Ricavato da 16 esempi (2026-11-03): 14 frame di video di interni di lusso (stile The Local Project) e 2 foto Instagram (castello nella nebbia, bosco d'autunno). Sono tutte foto "finite", senza originali. Il look è stato tarato rendendole piatte come uno scatto di telefono e poi ricolorandole (tavola in `editing/esempi/2026-11-03/prova-look-v1.jpg`). Da confermare sui primi frame veri dei clienti (iPhone, grandangolo 0,5×). Gli esempi sono screenshot compressi: grana e nitidezza misurate lì non sono affidabili.
 
 ## Regole del look ("Luce dorata")
 
@@ -39,7 +39,8 @@ Rispondi in **italiano**, con frasi semplici. Spesso lavora dall'iPhone: mostrag
 9. **Atmosfera.** Esterni con nebbia o foschia, raggi di luce tra gli alberi (1, 2, 12). Interni con aria ferma, un leggero bagliore su tende e finestre. Silenzio: niente disordine, nessuna persona riconoscibile.
 10. **Pellicola.** Pulito: grana appena percepibile, nitidezza morbida, niente effetto "HDR" o dettagli spinti. Vignetta lieve. Leggero bagliore sulle luci forti.
 11. **Emozione.** Calma, intimità, lusso silenzioso. Il tempo rallentato del tardo pomeriggio: chi guarda deve sentire il calore del sole sul muro.
-12. **Da non fare mai.** Bianchi bruciati. Teal & orange. Saturazione alta. HDR. Luce fredda o mista (neon + sole). Verticali storte. Grandangolo 0,5× deformato lasciato così. Testi o loghi grandi sopra la foto (i titoli, se servono, sono piccoli, serif, bianchi e centrati, come "THE LOCAL PROJECT").
+12. **Onestà sulla casa.** Si toglie solo ciò che non fa parte della casa (disordine, oggetti personali, persone, animali). Non si cambiano **mai** muri, pavimenti, finestre, infissi, impianti, vista o dimensioni delle stanze: il video serve a vendere quella casa vera.
+13. **Da non fare mai.** Bianchi bruciati. Teal & orange. Saturazione alta. HDR. Luce fredda o mista (neon + sole). Verticali storte. Grandangolo 0,5× deformato lasciato così. Testi o loghi grandi sopra la foto (i titoli, se servono, sono piccoli, serif, bianchi e centrati, come "THE LOCAL PROJECT").
 
 ### Come le regole diventano `look.json`
 
@@ -78,8 +79,9 @@ Varianti: «remove [object], keep everything else identical»; «straighten vert
 3. **Misura** il gruppo: `python3 .claude/skills/editing/scripts/analizza.py esempi <cartella>`. Serve per capire quanto ogni foto è lontana dal look e per rendere il gruppo **coerente** (stessa luminosità media, stesso nero, stesso colore delle ombre).
 4. **Scegli il registro** per ogni foto (*luce dorata* o *penombra*, regola 2) e tieni lo stesso registro nelle foto della stessa stanza. **Applica il look**: `python3 .claude/skills/editing/scripts/applica.py <originali> <cartella>/editing --confronto`. Se una foto ha bisogno di una correzione in più (es. molto più scura delle altre), crea un look derivato solo per lei (copia di `look.json` con `base.esposizione` diverso, salvato come `<cartella>/look-<foto>.json`) e annotalo. Non cambiare `look.json` per una foto sola.
 5. **Controlla** ogni `_prima-dopo.jpg` con Read. Domande: rispetta tutte le regole? Il gruppo sembra girato nella stessa giornata con la stessa pellicola? Ci sono luci bruciate, pelle o legno di colori strani, grana troppo forte? Se qualcosa non va, correggi e rifai.
-6. **Ritocchi che il colore non può fare** (cambiare il cielo, accendere una lampada, aggiungere luce dalla finestra, togliere oggetti, raddrizzare con riempimento dei bordi): prepara per ogni foto il **prompt per Higgsfield** (modello di modifica immagine) con le regole del look dentro, in inglese, più le impostazioni consigliate. **Non generare mai**: il proprietario deve dare il consenso esplicito per ogni spesa di crediti, e il connettore è in sola lettura. Usa `models_list` / `models_get` solo per scegliere il modello e i parametri giusti.
-7. **Consegna**: mandagli i `_prima-dopo.jpg` con SendUserFile e i file finali `_editing.jpg`. In poche righe: cosa hai fatto, le eccezioni foto per foto, gli eventuali prompt Higgsfield da lanciare. Chiedi se salvare il gruppo nel repository (commit e push sul ramo di lavoro).
+6. **Ritocchi che il colore non può fare** (modello consigliato: **Nano Banana Pro**, `nano_banana_pro`, 16:9, 4k; prima "mettere in ordine", poi "luce dorata", in due passaggi) (cambiare il cielo, accendere una lampada, aggiungere luce dalla finestra, togliere oggetti, raddrizzare con riempimento dei bordi): prepara per ogni foto il **prompt per Higgsfield** (modello di modifica immagine) con le regole del look dentro, in inglese, più le impostazioni consigliate. **Non generare mai**: il proprietario deve dare il consenso esplicito per ogni spesa di crediti, e il connettore è in sola lettura. Usa `models_list` / `models_get` solo per scegliere il modello e i parametri giusti.
+7. **Inquadratura dai frame dei clienti.** Il grandangolo 0,5× riprende troppo soffitto e troppo pavimento. Taglia a 16:9 con `ritaglio.area` (copia di `look.json` per quella foto), togliendo soffitto e primo piano, ma tieni la profondità della stanza. Se il taglio scende sotto i 1920 px di larghezza, proponilo solo come alternativa (vedi soggiorno 2026-11-03: versione *larga* 2016 px buona, versione *stretta* 1020 px troppo piccola). Gli oggetti in primo piano che non si possono tagliare vanno nel prompt "mettere in ordine".
+8. **Consegna**: mandagli i `_prima-dopo.jpg` con SendUserFile e i file finali `_editing.jpg`. In poche righe: cosa hai fatto, le eccezioni foto per foto, gli eventuali prompt Higgsfield da lanciare. Le foto dei clienti **non vanno mai nel repository** (è pubblico, `.gitignore` le esclude): restano nella sessione e si consegnano in chat. Nel repository va solo ciò che migliora la skill (regole, `look.json`, script).
 
 ## Creare o aggiornare il look (reverse engineering degli esempi)
 
@@ -100,6 +102,7 @@ Ogni voce ha un valore neutro che non cambia nulla. L'ordine di applicazione è 
 
 | Voce | Cosa fa | Neutro |
 |---|---|---|
+| `ritaglio.area` | tiene solo una zona `[x0, y0, x1, y1]` in frazioni (es. `[0, 0.24, 0.64, 0.72]`), prima del formato | `null` |
 | `ritaglio.formato` | taglia al formato (2.39 cinema, 1.85, 1.78 = 16:9, 0.5625 = 9:16) | `null` |
 | `ritaglio.centro_verticale` | dove tagliare in altezza (0 alto, 1 basso) | `0.5` |
 | `base.esposizione` | stop di luce (+1 = doppio) | `0` |

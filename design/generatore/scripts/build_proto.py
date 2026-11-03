@@ -125,7 +125,11 @@ button.btn-p{border:0;cursor:pointer}
 .avv-piano .chip-piano,.avv-dritto .chip-dritto,.avv-luce .chip-luce,.avv-ok .chip-ok{opacity:1}
 .avv-dritto .level{transform:rotate(7deg)}.avv-dritto .lv{background:#E0583F}
 @media (prefers-reduced-motion: reduce){.dial-prog,.dial-mark,.chev,.walk-bar,.avv-auto .chip,.avv-auto .level,.avv-auto .lv{animation:none}.chev{opacity:1}}
-@media (prefers-reduced-motion: reduce){.anim .free{animation:fade .4s ease var(--d,0ms) backwards}.rec-dot{animation:none}.boil{animation:none}.boil.b1{opacity:1}}"""
+@media (prefers-reduced-motion: reduce){.anim .free{animation:fade .4s ease var(--d,0ms) backwards}.rec-dot{animation:none}.boil{animation:none}.boil.b1{opacity:1}}
+/* The shadow behind the words on the meadow: a tight dark edge for the letters and a wide soft halo for the line, like light on velvet (same as the questionnaire). */
+.prato .scr :is(h1,h2,p,.lab,.dsp),.prato .brand{text-shadow:0 1px 2px rgba(10,8,4,.5),0 2px 14px rgba(10,8,4,.6),0 0 34px rgba(10,8,4,.45)}
+.prato .scr.scr h1{text-shadow:0 1px 3px rgba(10,8,4,.45),0 4px 26px rgba(10,8,4,.6),0 0 64px rgba(10,8,4,.45)}
+.prato .scr :is(.lg-c,.gl,.btn-p) :is(h1,h2,p,.lab,.dsp){text-shadow:0 1px 10px rgba(10,8,4,.4)}"""
 
 def plan_html(p):
     return """<div class="plan">
@@ -1392,7 +1396,7 @@ html = f'''<!doctype html>
       musicLabel: this.musicOn() ? 'Spegni la musica' : 'Accendi la musica',
       toggleMusic: () => this.toggleMusic(),
       displayFont: '"' + display + '", "Bodoni Moda", Didot, serif',
-      veilBg: 'linear-gradient(180deg, rgba(18,15,9,' + a(v) + ') 0%, rgba(18,15,9,0) 28%, rgba(18,15,9,0) 68%, rgba(18,15,9,' + a(v + 0.1) + ') 100%)'
+      veilBg: 'linear-gradient(180deg, rgba(18,15,9,' + a(v) + ') 0%, rgba(18,15,9,.16) 28%, rgba(18,15,9,.16) 68%, rgba(18,15,9,' + a(v + 0.1) + ') 100%)'
     }});
   }}
 }}

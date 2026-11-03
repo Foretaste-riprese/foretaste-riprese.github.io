@@ -1,0 +1,40 @@
+{
+  "_nota": "Look di /editing. Valori NEUTRI finché non analizziamo le foto di esempio: così non cambia nulla. Ogni voce è spiegata in SKILL.md.",
+  "ritaglio": { "formato": null, "centro_verticale": 0.5 },
+  "base": {
+    "esposizione": 0.0,
+    "temperatura": 0,
+    "tinta": 0,
+    "saturazione": 1.0,
+    "vividezza": 0.0,
+    "compressione_luci_da": 1.0
+  },
+  "curve": {
+    "generale": null,
+    "r": null,
+    "g": null,
+    "b": null,
+    "tabelle": null
+  },
+  "toni": {
+    "ombre": { "tinta_gradi": 190, "forza": 0.0 },
+    "medi":  { "tinta_gradi": 35,  "forza": 0.0 },
+    "luci":  { "tinta_gradi": 40,  "forza": 0.0 }
+  },
+  "colori": {
+    "rossi":     { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 },
+    "arancioni": { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 },
+    "gialli":    { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 },
+    "verdi":     { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 },
+    "azzurri":   { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 },
+    "blu":       { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 },
+    "viola":     { "tinta": 0, "saturazione": 0.0, "luminosita": 0.0 }
+  },
+  "luce": {
+    "halation": { "forza": 0.0, "soglia": 0.8, "raggio": 0.006, "colore": [1.0, 0.35, 0.15] },
+    "bloom":    { "forza": 0.0, "soglia": 0.7, "raggio": 0.02 }
+  },
+  "vignetta": { "forza": 0.0, "inizio": 0.35, "morbidezza": 0.6, "rotondita": 0.5 },
+  "grana": { "forza": 0.0, "dimensione": 0.8, "colore": 0.0 },
+  "bande": { "formato": null }
+}

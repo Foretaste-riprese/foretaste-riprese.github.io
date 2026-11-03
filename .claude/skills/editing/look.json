@@ -1,5 +1,9 @@
 {
   "_nota": "Look 'Luce dorata' v1, ricavato dai 16 esempi del 2026-11-03 (editing/esempi/2026-11-03). Bozza: da confermare con frame veri dei clienti.",
+  "geometria": {
+    "rotazione": 0,
+    "prospettiva": 0
+  },
   "ritaglio": {
     "formato": null,
     "centro_verticale": 0.5

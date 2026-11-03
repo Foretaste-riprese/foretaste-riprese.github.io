@@ -70,7 +70,7 @@ desaturated olive greens, soft film-like roll-off, quiet luxury architectural
 photography, no people, no added objects, no HDR look.
 ```
 
-Varianti: «remove [object], keep everything else identical»; «straighten verticals and fill the edges naturally»; esterni: «soft morning mist, diffused light, muted autumn palette».
+Varianti: «remove [object], keep everything else identical»; «straighten verticals and fill the edges naturally» (solo se `geometria` taglia troppo: di norma le verticali si raddrizzano con lo script, senza crediti); esterni: «soft morning mist, diffused light, muted autumn palette».
 
 ## Procedura per `/editing` (gruppo di foto da modificare)
 
@@ -80,7 +80,7 @@ Varianti: «remove [object], keep everything else identical»; «straighten vert
 4. **Scegli il registro** per ogni foto (*luce dorata* o *penombra*, regola 2) e tieni lo stesso registro nelle foto della stessa stanza. **Applica il look**: `python3 .claude/skills/editing/scripts/applica.py <originali> <cartella>/editing --confronto`. Se una foto ha bisogno di una correzione in più (es. molto più scura delle altre), crea un look derivato solo per lei (copia di `look.json` con `base.esposizione` diverso, salvato come `<cartella>/look-<foto>.json`) e annotalo. Non cambiare `look.json` per una foto sola.
 5. **Controlla** ogni `_prima-dopo.jpg` con Read. Domande: rispetta tutte le regole? Il gruppo sembra girato nella stessa giornata con la stessa pellicola? Ci sono luci bruciate, pelle o legno di colori strani, grana troppo forte? Se qualcosa non va, correggi e rifai.
 6. **Ritocchi che il colore non può fare** (modello consigliato: **Nano Banana Pro**, `nano_banana_pro`, 16:9, 4k; prima "mettere in ordine", poi "luce dorata", in due passaggi) (cambiare il cielo, accendere una lampada, aggiungere luce dalla finestra, togliere oggetti, raddrizzare con riempimento dei bordi): prepara per ogni foto il **prompt per Higgsfield** (modello di modifica immagine) con le regole del look dentro, in inglese, più le impostazioni consigliate. **Non generare mai**: il proprietario deve dare il consenso esplicito per ogni spesa di crediti, e il connettore è in sola lettura. Usa `models_list` / `models_get` solo per scegliere il modello e i parametri giusti.
-7. **Inquadratura dai frame dei clienti.** Il grandangolo 0,5× riprende troppo soffitto e troppo pavimento. Taglia a 16:9 con `ritaglio.area` (copia di `look.json` per quella foto), togliendo soffitto e primo piano, ma tieni la profondità della stanza. Se il taglio scende sotto i 1920 px di larghezza, proponilo solo come alternativa (vedi soggiorno 2026-11-03: versione *larga* 2016 px buona, versione *stretta* 1020 px troppo piccola). Gli oggetti in primo piano che non si possono tagliare vanno nel prompt "mettere in ordine".
+7. **Inquadratura dai frame dei clienti.** Prima **raddrizza**, gratis e senza inventare nulla: guarda spigoli delle pareti, stipiti e infissi e prova `applica.py <foto> <uscita> --confronto --ruota <gradi> --prospettiva <valore>` a piccoli passi finché le verticali sono dritte. `--ruota` da −3 a 3 gradi (positivo = antiorario) per l'orizzonte storto. `--prospettiva` positiva (0,03–0,15) quando le pareti convergono verso l'alto, il caso tipico del telefono 0,5× inclinato in su; negativa quando si aprono verso l'alto. Quando il valore è giusto, scrivilo in `geometria` nella copia di `look.json` di quella foto. La correzione toglie un po' di bordo: se ne toglie troppo, o servirebbe riempire gli angoli, passa al prompt Higgsfield «straighten verticals». Poi taglia: il grandangolo 0,5× riprende troppo soffitto e troppo pavimento. Taglia a 16:9 con `ritaglio.area` (copia di `look.json` per quella foto), togliendo soffitto e primo piano, ma tieni la profondità della stanza. Se il taglio scende sotto i 1920 px di larghezza, proponilo solo come alternativa (vedi soggiorno 2026-11-03: versione *larga* 2016 px buona, versione *stretta* 1020 px troppo piccola). Gli oggetti in primo piano che non si possono tagliare vanno nel prompt "mettere in ordine".
 8. **Consegna**: mandagli i `_prima-dopo.jpg` con SendUserFile e i file finali `_editing.jpg`. In poche righe: cosa hai fatto, le eccezioni foto per foto, gli eventuali prompt Higgsfield da lanciare. Le foto dei clienti **non vanno mai nel repository** (è pubblico, `.gitignore` le esclude): restano nella sessione e si consegnano in chat. Nel repository va solo ciò che migliora la skill (regole, `look.json`, script).
 
 ## Creare o aggiornare il look (reverse engineering degli esempi)
@@ -102,6 +102,8 @@ Ogni voce ha un valore neutro che non cambia nulla. L'ordine di applicazione è 
 
 | Voce | Cosa fa | Neutro |
 |---|---|---|
+| `geometria.rotazione` | raddrizza l'orizzonte, in gradi (positivo = antiorario); taglia via gli angoli vuoti | `0` |
+| `geometria.prospettiva` | verticali dritte: + se le pareti convergono verso l'alto (0,5× inclinato in su), − se si aprono (tipico 0,03–0,15) | `0` |
 | `ritaglio.area` | tiene solo una zona `[x0, y0, x1, y1]` in frazioni (es. `[0, 0.24, 0.64, 0.72]`), prima del formato | `null` |
 | `ritaglio.formato` | taglia al formato (2.39 cinema, 1.85, 1.78 = 16:9, 0.5625 = 9:16) | `null` |
 | `ritaglio.centro_verticale` | dove tagliare in altezza (0 alto, 1 basso) | `0.5` |
@@ -122,7 +124,7 @@ Ogni voce ha un valore neutro che non cambia nulla. L'ordine di applicazione è 
 
 ## Strumenti
 
-- `scripts/applica.py`: applica il look (solo Pillow e numpy, già installati). `--look` per un look diverso, `--confronto` per le tavole prima/dopo.
+- `scripts/applica.py`: applica il look (solo Pillow e numpy, già installati). `--look` per un look diverso, `--confronto` per le tavole prima/dopo, `--ruota` e `--prospettiva` per provare la geometria di una foto senza toccare `look.json`.
 - `scripts/analizza.py`: misura luminosità, nero e bianco, contrasto, colore di ombre/medi/luci, saturazione per colore, vignetta, grana, formato e bande nere. Con le coppie misura anche le variazioni e impara le curve.
 - `scripts/comune.py`: funzioni condivise (colore, curve, sfocatura).
 

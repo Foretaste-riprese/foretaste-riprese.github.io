@@ -173,6 +173,45 @@ def bande(img, formato):
     return out
 
 
+def _trasforma(img, fn):
+    """Applica una trasformazione di PIL a ogni canale in virgola mobile (niente perdita a 8 bit)."""
+    from PIL import Image
+    return np.stack([np.asarray(fn(Image.fromarray(img[..., i].astype(np.float32), "F")), np.float32)
+                     for i in range(img.shape[2])], -1)
+
+
+def raddrizza(img, gradi):
+    """Ruota (positivo = antiorario) e taglia via gli angoli vuoti, tenendo le proporzioni."""
+    if not gradi:
+        return img
+    from PIL import Image
+    h, w = img.shape[:2]
+    out = _trasforma(img, lambda c: c.rotate(gradi, resample=Image.BICUBIC, expand=False))
+    a = np.radians(abs(gradi))
+    s = min(w / (w * np.cos(a) + h * np.sin(a)), h / (w * np.sin(a) + h * np.cos(a)))
+    cw, ch = int(w * s), int(h * s)
+    x0, y0 = (w - cw) // 2, (h - ch) // 2
+    return np.clip(out[y0:y0 + ch, x0:x0 + cw], 0, 1)
+
+
+def prospettiva(img, k):
+    """Verticali dritte. k > 0: pareti che convergono verso l'alto (telefono inclinato in su,
+    il caso tipico dello 0,5x); k < 0: pareti che si aprono verso l'alto. Valori tipici 0,03-0,15.
+    Allarga il lato stretto senza inventare nulla, poi toglie le fasce laterali rimaste vuote."""
+    if not k:
+        return img
+    from PIL import Image
+    h, w = img.shape[:2]
+    d = abs(k) * w / 2
+    if k > 0:   # in alto la stanza è più stretta: si campiona una fascia alta più stretta
+        quad = (d, 0, 0, h, w, h, w - d, 0)
+    else:
+        quad = (0, 0, d, h, w - d, h, w, 0)
+    out = _trasforma(img, lambda c: c.transform((w, h), Image.QUAD, quad, resample=Image.BICUBIC))
+    m = int(round(d * 0.15))
+    return np.clip(out[:, m:w - m] if m else out, 0, 1)
+
+
 def area(img, box):
     """Tiene solo la zona [x0, y0, x1, y1] (frazioni 0..1 di larghezza e altezza)."""
     if not box:
@@ -183,6 +222,9 @@ def area(img, box):
 
 
 def applica(img, look, seme=0):
+    g = look.get("geometria", {})
+    img = raddrizza(img, g.get("rotazione", 0))
+    img = prospettiva(img, g.get("prospettiva", 0))
     img = area(img, look.get("ritaglio", {}).get("area"))
     img = ritaglia(img, look.get("ritaglio", {}).get("formato"), look.get("ritaglio", {}).get("centro_verticale", 0.5))
     diag = float(np.hypot(*img.shape[:2]))
@@ -218,8 +260,18 @@ def main():
     ap.add_argument("uscita")
     ap.add_argument("--look", default=str(QUI.parent / "look.json"))
     ap.add_argument("--confronto", action="store_true")
+    ap.add_argument("--ruota", type=float, default=None,
+                    help="gradi per raddrizzare (positivo = antiorario); sostituisce geometria.rotazione")
+    ap.add_argument("--prospettiva", type=float, default=None,
+                    help="correzione delle verticali (+ convergono in alto, - si aprono); sostituisce geometria.prospettiva")
     a = ap.parse_args()
     look = json.loads(Path(a.look).read_text())
+    if a.ruota is not None or a.prospettiva is not None:
+        g = look.setdefault("geometria", {})
+        if a.ruota is not None:
+            g["rotazione"] = a.ruota
+        if a.prospettiva is not None:
+            g["prospettiva"] = a.prospettiva
     for i, f in enumerate(C.elenca(a.ingresso)):
         img = C.carica(f)
         out = applica(img, look, seme=i)

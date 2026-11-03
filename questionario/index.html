@@ -24,6 +24,9 @@
 /* The questionnaire after the trial: the same meadow, type, glass, motion and sounds as the guide (index.html). */
 :root {
   color-scheme: dark;
+  /* the shadow behind the words: a tight dark edge for the letters, a wide soft halo for the line, like light on velvet */
+  --halo: 0 1px 2px rgba(10,8,4,.5), 0 2px 14px rgba(10,8,4,.6), 0 0 34px rgba(10,8,4,.45);
+  --halo-big: 0 1px 3px rgba(10,8,4,.45), 0 4px 26px rgba(10,8,4,.6), 0 0 64px rgba(10,8,4,.45);
   --ground: #2a2f1c;
   --ink: #F3EBDD;
   --soft: rgba(243, 235, 221, .85);
@@ -48,27 +51,29 @@ button { font: inherit; cursor: pointer; border: 0; padding: 0; background: none
 .bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
 .prato-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 .bg video::-webkit-media-controls, .bg video::-webkit-media-controls-start-playback-button, .bg video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; }
-.veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18,15,9,.45) 0%, rgba(18,15,9,0) 28%, rgba(18,15,9,0) 68%, rgba(18,15,9,.55) 100%); }
+.veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18,15,9,.5) 0%, rgba(18,15,9,.16) 28%, rgba(18,15,9,.16) 68%, rgba(18,15,9,.6) 100%); }
 @media (prefers-reduced-motion: reduce) { .prato-video { display: none; } }
 
 #app { position: relative; z-index: 1; }
 .scr { position: relative; box-sizing: border-box; max-width: 480px; margin: 0 auto; min-height: 100vh; min-height: 100svh;
   padding: calc(54px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) calc(34px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
   display: flex; flex-direction: column; }
-.brand { position: absolute; top: calc(21px + env(safe-area-inset-top, 0px)); left: 0; right: 0; margin: 0; text-align: center; font: 500 11px/1 var(--display); letter-spacing: .62em; text-indent: .62em; color: rgba(243,235,221,.86); transform: scaleY(.78); text-shadow: 0 1px 8px rgba(10,8,4,.45); pointer-events: none; transition: opacity .3s; }
+.brand { position: absolute; top: calc(21px + env(safe-area-inset-top, 0px)); left: 0; right: 0; margin: 0; text-align: center; font: 500 11px/1 var(--display); letter-spacing: .62em; text-indent: .62em; color: rgba(243,235,221,.9); transform: scaleY(.78); text-shadow: var(--halo); pointer-events: none; transition: opacity .3s; }
 .sending .brand { opacity: 0; }
 header { display: flex; justify-content: space-between; align-items: center; min-height: 44px; }
 main { flex: 1; display: flex; flex-direction: column; }
 .dsp { font-family: var(--display); font-weight: 400; font-optical-sizing: auto; }
 .dsp em { font-style: italic; color: var(--champ); }
-h1, h2, p { text-shadow: 0 1px 14px rgba(12,10,6,.45); }
+h1, h2, p, .lab, .dsp, .link, .under { text-shadow: var(--halo); }
+.h1, .q { text-shadow: var(--halo-big); }
+.gl, .gl * { text-shadow: 0 1px 10px rgba(10,8,4,.4); }
 .lab { font-family: var(--body); font-stretch: 125%; font-weight: 500; font-size: 10px; letter-spacing: .24em; text-transform: uppercase; }
 .h1 { margin: 10px 0 0; font-size: 46px; line-height: 1.04; letter-spacing: -.012em; }
 .q { margin: 12px 0 0; font-size: 28px; line-height: 1.13; letter-spacing: -.01em; text-wrap: balance; }
 .q.long { font-size: 25px; }
 .q em { color: var(--champ-hi); }
 .lead { margin: 14px 0 0; font-size: 15px; line-height: 1.55; color: rgba(243,235,221,.9); max-width: 34ch; }
-.hint { margin: 10px 0 0; font-family: var(--display); font-style: italic; font-size: 19px; line-height: 1.3; color: var(--champ-hi); text-shadow: 0 1px 12px rgba(12,10,6,.7), 0 0 2px rgba(12,10,6,.5); }
+.hint { margin: 10px 0 0; font-family: var(--display); font-style: italic; font-size: 19px; line-height: 1.3; color: var(--champ-hi); text-shadow: var(--halo-big); }
 
 /* glass for a screen that changes all the time: blur and rim over the live meadow (as in the guide) */
 .gl { background: rgba(18,15,9,.18); -webkit-backdrop-filter: blur(16px) saturate(1.45); backdrop-filter: blur(16px) saturate(1.45); border: 1px solid rgba(255,255,255,.18); box-shadow: inset 1.5px 1.5px 0 rgba(255,255,255,.45), inset -1px -1px 0 rgba(255,255,255,.14), inset 0 0 24px rgba(255,255,255,.08), 0 14px 34px -16px rgba(8,6,3,.6); text-shadow: 0 1px 10px rgba(10,8,4,.4); color: var(--ink); box-sizing: border-box; }
@@ -89,14 +94,22 @@ button.gl:hover { background: rgba(255,255,255,.08); }
 .btn-p:active { transform: scale(.965); }
 .btn-p[disabled] { opacity: .5; cursor: default; }
 nav { margin-top: auto; padding-top: 26px; display: flex; gap: 10px; }
-.link { align-self: center; min-height: 44px; margin-top: 6px; color: var(--soft); font: 500 13px var(--body); text-decoration: underline; text-underline-offset: 3px; text-shadow: 0 1px 8px rgba(10,8,4,.5); }
+.link { align-self: center; min-height: 44px; margin-top: 6px; color: var(--soft); font: 500 13px var(--body); text-decoration: underline; text-underline-offset: 3px; }
 
 /* writing */
 .answer { display: block; width: 100%; min-height: 168px; max-height: 52vh; border-radius: 20px; padding: 15px 17px; font: 400 16px/1.45 var(--body); color: var(--ink); resize: none; }
 .answer::placeholder, .field::placeholder { color: rgba(243,235,221,.62); }
 .field { display: block; width: 100%; min-height: 52px; border-radius: 18px; padding: 0 17px; font: 400 16px var(--body); color: var(--ink); }
 .answer:focus, .field:focus { outline: 2px solid var(--champ); outline-offset: 2px; }
-.under { display: flex; justify-content: space-between; gap: 12px; margin-top: 9px; font-size: 12px; color: rgba(243,235,221,.78); text-shadow: 0 1px 8px rgba(10,8,4,.5); }
+.under { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 10px; font-size: 12px; color: rgba(243,235,221,.9); }
+/* dictation: a glass pill under the answer; while listening it turns rec red and breathes */
+.mic { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 16px 0 13px; border-radius: 999px; font: 600 13px var(--body); white-space: nowrap; }
+.mic svg { flex: none; }
+button.gl.mic.on, button.gl.mic.on:hover { background: rgba(224,88,63,.88); border-color: rgba(255,255,255,.3); }
+.mic.on .mic-dot { width: 8px; height: 8px; border-radius: 50%; background: #F3EBDD; animation: blink 1.4s ease-in-out infinite; }
+.mic-tip { display: flex; align-items: center; gap: 8px; line-height: 1.4; }
+.mic-msg { margin: 10px 2px 0; font-size: 13px; line-height: 1.45; color: #F2B8A6; }
+@media (prefers-reduced-motion: reduce) { .mic.on .mic-dot { animation: none; } }
 .err { margin: 10px 0 0; color: #F2B8A6; font-size: 14px; }
 
 /* progress: a thin champagne line per question of the part */
@@ -336,19 +349,20 @@ const SND = {
   waitForTouch() {
     if (this.waiting) return;
     this.waiting = true;
+    // the iPhone gives sound only to a real tap (a scroll does not count): every kind of touch is tried, until one works
+    const EV = ['pointerdown', 'touchend', 'click', 'keydown'];
     const wake = (e) => {
       if (e.target && e.target.closest && e.target.closest('.snd')) return;
-      document.removeEventListener('pointerdown', wake, true);
-      document.removeEventListener('keydown', wake, true);
-      this.waiting = false;
-      if (!this.on) return;
+      if (!this.on || dictating()) return;
       const c = this.ctx();
-      if (c && c.state !== 'running') c.resume();
-      this.start(this.shared().time);
-      drawSound();
+      if (c && c.state !== 'running') { try { c.resume(); } catch (_) {} }
+      const a = this.player();
+      if (!a.paused) return;
+      const p = a.play();
+      const ok = () => { EV.forEach((k) => document.removeEventListener(k, wake, true)); this.waiting = false; this.start(this.shared().time); drawSound(); };
+      if (p && p.then) p.then(ok, () => {}); else ok();
     };
-    document.addEventListener('pointerdown', wake, true);
-    document.addEventListener('keydown', wake, true);
+    EV.forEach((k) => document.addEventListener(k, wake, true));
   },
   toggle() {
     const c = this.ctx();
@@ -431,7 +445,7 @@ app.addEventListener('animationend', (e) => {
 app.addEventListener('animationstart', (e) => { if (e.animationName === 'pt') SND.pop(Number(e.target.style.getPropertyValue('--i')) || 1); });
 app.addEventListener('click', (e) => {
   const t = e.target && e.target.closest ? e.target.closest('button, a') : null;
-  if (t && !t.closest('.snd')) SND.tchk();
+  if (t && !t.closest('.snd, .mic')) SND.tchk();
 }, true);
 // after another app, a call or the lock screen the iPhone suspends the sound: the music stops, and the first touch brings it back
 document.addEventListener('visibilitychange', () => {
@@ -441,12 +455,69 @@ document.addEventListener('visibilitychange', () => {
   if (SND.paused && SND.musicOn()) SND.start(SND.shared().time);
   SND.paused = false;
 });
-document.addEventListener('pointerdown', (e) => {
-  if (e.target.closest && e.target.closest('.snd')) return;
-  if (!SND.on) return;
+['pointerdown', 'touchend', 'click'].forEach((k) => document.addEventListener(k, (e) => {
+  if (e.target.closest && e.target.closest('.snd, .mic')) return;
+  if (!SND.on || SND.waiting || dictating()) return;
   const c = SND.ctx(); if (c && c.state !== 'running') { try { c.resume(); } catch (_) {} }
-  const a = window.__guidaMusica; if (a && a.paused && !SND.waiting) SND.start(SND.shared().time);
-}, true);
+  const a = window.__guidaMusica; if (a && a.paused) SND.start(SND.shared().time);
+}, true));
+
+// ---------- dictation: the phone's own speech recognition writes into the answer (Safari on iPhone, Chrome) ----------
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+const MIC = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg>';
+let rec = null, recWant = false;
+const dictating = () => !!rec;
+// the words heard join what is already written, with a space, and a capital letter after a full stop
+function joinText(base, said) {
+  said = said.trim(); if (!said) return base;
+  const b = base.replace(/\s+$/, '');
+  if (!b || /[.!?]$/.test(b)) said = said.charAt(0).toUpperCase() + said.slice(1);
+  return b ? b + ' ' + said : said;
+}
+function setAnswer(v) {
+  const ta = $('#ans'), c = cur(); if (!ta || c.t !== 'q') return;
+  ta.value = v; S.a[c.n] = v; save(); grow(ta); count(ta);
+  const nb = $('#next'); if (nb) nb.textContent = nextLabel(v);
+}
+function micMsg(t) { const m = $('#mic-msg'); if (!m) return; m.hidden = !t; m.textContent = t || ''; }
+function drawMic() {
+  const b = $('.mic'); if (!b || !b.dataset.a) return;
+  const on = dictating();
+  b.classList.toggle('on', on);
+  b.setAttribute('aria-pressed', String(on));
+  b.innerHTML = on ? '<span class="mic-dot" aria-hidden="true"></span><span id="mic-t">Sto ascoltando · tocca per finire</span>' : MIC + '<span id="mic-t">Detta la risposta</span>';
+}
+function dictStart() {
+  const ta = $('#ans'); if (!ta || !SR || rec) return;
+  micMsg('');
+  // the music would be heard by the microphone: it stops while you speak, and comes back after
+  const a = window.__guidaMusica; SND.dictPaused = !!(a && !a.paused); if (SND.dictPaused) a.pause();
+  const base = ta.value;
+  let r;
+  try { r = new SR(); } catch (_) { micMsg('La dettatura non è disponibile su questo telefono: usa il microfono della tastiera.'); return; }
+  r.lang = 'it-IT'; r.continuous = true; r.interimResults = true;
+  r.onresult = (e) => {
+    let said = '';
+    for (let i = 0; i < e.results.length; i++) said += (said ? ' ' : '') + e.results[i][0].transcript.trim();
+    setAnswer(joinText(base, said));
+  };
+  r.onerror = (e) => {
+    const k = e && e.error;
+    if (k === 'not-allowed' || k === 'service-not-allowed') micMsg('Il telefono non ha dato il permesso. Su iPhone: Impostazioni › Generali › Tastiera › attiva «Dettatura», poi riprova e tocca «Consenti».');
+    else if (k === 'no-speech') micMsg('Non ho sentito nulla: riprova, parlando vicino al telefono.');
+    else if (k === 'network') micMsg('Per dettare serve la connessione a internet.');
+    else if (k !== 'aborted') micMsg('La dettatura si è fermata: tocca di nuovo «Detta la risposta».');
+  };
+  r.onend = () => {
+    rec = null; recWant = false; drawMic();
+    clearTimeout(window.__qSend); window.__qSend = setTimeout(queueSend, 1500);
+    if (SND.dictPaused && SND.musicOn()) SND.start(SND.shared().time);
+    SND.dictPaused = false;
+  };
+  try { r.start(); rec = r; recWant = true; } catch (_) { micMsg('La dettatura non è partita: riprova tra un attimo.'); }
+  drawMic();
+}
+function dictStop() { if (rec) { try { rec.stop(); } catch (_) { rec = null; } } }
 
 // ---------- screens ----------
 const cur = () => SEQ[Math.max(0, Math.min(SEQ.length - 1, S.idx))];
@@ -491,7 +562,7 @@ function viewIntro() {
       <h2 class="lab" style="margin: 0 0 6px; color: rgba(243,235,221,.82)">Come funziona</h2>
       <ol style="list-style: none; margin: 0; padding: 0">
         <li class="li-row"><span class="li-n">i.</span><span>${QS.length} domande in ${PARTS.length} parti, una alla volta. Circa 20 minuti.</span></li>
-        <li class="li-row"><span class="li-n">ii.</span><span>Scrivi con parole tue, oppure detta con il microfono della tastiera.</span></li>
+        <li class="li-row"><span class="li-n">ii.</span><span>Scrivi con parole tue, oppure tocca <strong>Detta la risposta</strong> e parla: il testo si scrive da solo.</span></li>
         <li class="li-row"><span class="li-n">iii.</span><span>Le risposte si salvano mentre scrivi: puoi fermarti e riprendere quando vuoi.</span></li>
       </ol>
     </section>
@@ -525,7 +596,9 @@ function viewQ(n) {
     ${q.h ? `<div class="posa" style="--d: 360ms"><p class="hint" data-suono="3">${esc(q.h)}</p></div>` : ''}
     <div class="free" data-suono="4" style="--d: 480ms; margin-top: 22px">
       <textarea class="gl answer" id="ans" aria-labelledby="q-t" placeholder="${esc(q.p || 'Scrivi qui, con parole tue')}" maxlength="5000">${esc(v)}</textarea>
-      <div class="under"><span id="saved">${v.trim() ? 'Salvata sul telefono' : 'Puoi anche dettare con il microfono'}</span><span id="cnt"></span></div>
+      <div class="under">${SR ? `<button type="button" class="gl mic" data-a="mic" aria-pressed="false">${MIC}<span id="mic-t">Detta la risposta</span></button>`
+        : `<span class="mic-tip">${MIC}<span>Per dettare, tocca il microfono della tastiera, in basso.</span></span>`}<span id="cnt"></span></div>
+      <p class="mic-msg" id="mic-msg" hidden></p>
     </div>
     <nav>${backBtn(710)}${nextBtn(760, nextLabel(v), 'id="next"')}</nav>
   </main>`;
@@ -571,6 +644,7 @@ function draw(animate) {
     if (c.t === 'thanks') { const tmp = document.createElement('div'); tmp.innerHTML = html; const a = tmp.querySelector('#t-state'), b = $('#t-state'); if (a && b) b.innerHTML = a.innerHTML; }
     return;
   }
+  if (rec) { try { rec.abort(); } catch (_) {} rec = null; }
   app.className = 'prep';
   app.innerHTML = `<div class="scr">${html}</div>`;
   drawSound();
@@ -591,7 +665,6 @@ app.addEventListener('input', (e) => {
   if (t.id === 'ans') {
     const c = cur(); S.a[c.n] = t.value; save();
     grow(t); count(t);
-    $('#saved').textContent = t.value.trim() ? 'Salvata sul telefono' : 'Puoi anche dettare con il microfono';
     const nb = $('#next'); if (nb) nb.textContent = nextLabel(t.value);
     clearTimeout(window.__qSend); window.__qSend = setTimeout(queueSend, 4000);
   }
@@ -602,6 +675,7 @@ app.addEventListener('click', (e) => {
   const b = e.target.closest('[data-a]'); if (!b) return;
   const a = b.dataset.a, c = cur();
   if (a === 'sound') return SND.toggle();
+  if (a === 'mic') return dictating() ? dictStop() : dictStart();
   if (a === 'restart') {
     if (!confirm('Ricominciare da capo? Le risposte scritte su questo telefono verranno cancellate.')) return;
     S = { id: newId(), nome: LINK.nome || S.nome, casa: LINK.casa || S.casa, a: {}, idx: 0, finito: false, fromReview: false };

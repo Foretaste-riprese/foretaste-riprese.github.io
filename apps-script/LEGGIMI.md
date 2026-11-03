@@ -33,6 +33,7 @@ Per controllare che funzioni, apri quell'indirizzo nel browser: deve comparire `
 - Una sottocartella per ogni immobile, con il nome scritto nel link della guida (`?casa=Via Roma 12`) o dal cliente.
 - Ogni video con il nome del passo, per esempio `Ambiente Rettangolare · passo 03 di 10 · Punto 1.mov`, in qualità originale.
 - Il foglio **Feedback della guida**, con data, immobile, stelle e commento.
+- Il foglio **Questionario della prova**, con le risposte al questionario dopo la prova: una riga per persona, una colonna per domanda. La riga si aggiorna da sola mentre la persona risponde; quando ha finito, lo Stato diventa «Completato».
 
 ## Se cambi lo script
 

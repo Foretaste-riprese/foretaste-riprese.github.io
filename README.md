@@ -7,6 +7,12 @@ La guida alle riprese: la web app con cui i clienti filmano la propria casa dal 
 Per ogni cliente, aggiungi l'indirizzo dell'immobile al link, così i suoi video finiscono nella sua cartella:
 `https://foretaste-riprese.github.io/?casa=Via+Roma+12+Bologna` (i + al posto degli spazi tengono intero il link su WhatsApp). Senza `?casa=` la guida chiede l'indirizzo al cliente.
 
+**Il questionario dopo la prova:** https://foretaste-riprese.github.io/questionario/
+
+Stesso link per tutti; con `?casa=` (e, se vuoi, `&nome=Mario+Rossi`) le risposte portano già l'alloggio e il nome:
+`https://foretaste-riprese.github.io/questionario/?casa=Via+Roma+12+Bologna&nome=Mario+Rossi`. Senza `nome` la pagina lo chiede.
+Le risposte arrivano nel foglio **Questionario della prova**, nella cartella dei video: una riga per persona, una colonna per domanda, aggiornata mentre la persona va avanti (Stato «In corso», poi «Completato»).
+
 ## Come funziona
 
 1. Il cliente apre il link dal telefono e segue la guida: setup, scelta dello spazio, un passo alla volta con la pianta.
@@ -21,6 +27,7 @@ Per ogni cliente, aggiungi l'indirizzo dell'immobile al link, così i suoi video
 - `config.js`: l'indirizzo dello script Google che riceve i video.
 - `apps-script/`: lo script da installare nel tuo account Google, con le istruzioni in [`apps-script/LEGGIMI.md`](apps-script/LEGGIMI.md).
 - `media/`: prato, musica e mappe per l'effetto vetro.
+- `questionario/`: il questionario dopo la prova, una pagina sola con lo stesso disegno, la stessa musica e gli stessi suoni della guida. Si modifica a mano (domande in `PARTS`, in cima allo script).
 - `prova-fotocamera/`: pagina di prova della fotocamera nel browser.
 
 ## Aggiornare la guida

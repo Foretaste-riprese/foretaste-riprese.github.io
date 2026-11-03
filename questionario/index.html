@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a2f1c">
+<title>Il tuo parere sulla prova</title>
+<meta name="description" content="Com’è andata la prova? 31 domande, con parole tue. Le risposte arrivano da sole.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Foretaste">
+<meta property="og:title" content="Il tuo parere sulla prova · Foretaste">
+<meta property="og:description" content="Com’è andata la prova? 31 domande, con parole tue. Le risposte arrivano da sole.">
+<meta property="og:url" content="https://foretaste-riprese.github.io/questionario/">
+<meta property="og:image" content="https://foretaste-riprese.github.io/media/anteprima.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="it_IT">
+<meta name="twitter:card" content="summary_large_image">
+<script src="../config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..700&amp;family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&amp;display=swap">
+<style>
+/* The questionnaire after the trial: the same meadow, type, glass, motion and sounds as the guide (index.html). */
+:root {
+  color-scheme: dark;
+  --ground: #2a2f1c;
+  --ink: #F3EBDD;
+  --soft: rgba(243, 235, 221, .85);
+  --faint: rgba(243, 235, 221, .3);
+  --line: rgba(243, 235, 221, .14);
+  --champ: #D9C29A;
+  --champ-hi: #E6D3B0;
+  --deep: #17130C;
+  --rec: #E0583F;
+  --display: "Bodoni Moda", "Didot", "Times New Roman", serif;
+  --body: Archivo, system-ui, -apple-system, sans-serif;
+}
+[hidden] { display: none !important; }
+html, body { margin: 0; min-height: 100%; }
+body { background: var(--ground); color: var(--ink); font-family: var(--body); overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+a { color: var(--champ); }
+button { font: inherit; cursor: pointer; border: 0; padding: 0; background: none; color: inherit; }
+:focus-visible { outline: 2px solid var(--champ); outline-offset: 3px; }
+
+/* the meadow in the wind, behind everything, with the guide's veil */
+.prato { background: #4d5c34 url(../media/prato.webp) center/cover no-repeat; }
+.bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+.prato-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.bg video::-webkit-media-controls, .bg video::-webkit-media-controls-start-playback-button, .bg video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; }
+.veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18,15,9,.45) 0%, rgba(18,15,9,0) 28%, rgba(18,15,9,0) 68%, rgba(18,15,9,.55) 100%); }
+@media (prefers-reduced-motion: reduce) { .prato-video { display: none; } }
+
+#app { position: relative; z-index: 1; }
+.scr { position: relative; box-sizing: border-box; max-width: 480px; margin: 0 auto; min-height: 100vh; min-height: 100svh;
+  padding: calc(54px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) calc(34px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+  display: flex; flex-direction: column; }
+.brand { position: absolute; top: calc(21px + env(safe-area-inset-top, 0px)); left: 0; right: 0; margin: 0; text-align: center; font: 500 11px/1 var(--display); letter-spacing: .62em; text-indent: .62em; color: rgba(243,235,221,.86); transform: scaleY(.78); text-shadow: 0 1px 8px rgba(10,8,4,.45); pointer-events: none; transition: opacity .3s; }
+.sending .brand { opacity: 0; }
+header { display: flex; justify-content: space-between; align-items: center; min-height: 44px; }
+main { flex: 1; display: flex; flex-direction: column; }
+.dsp { font-family: var(--display); font-weight: 400; font-optical-sizing: auto; }
+.dsp em { font-style: italic; color: var(--champ); }
+h1, h2, p { text-shadow: 0 1px 14px rgba(12,10,6,.45); }
+.lab { font-family: var(--body); font-stretch: 125%; font-weight: 500; font-size: 10px; letter-spacing: .24em; text-transform: uppercase; }
+.h1 { margin: 10px 0 0; font-size: 46px; line-height: 1.04; letter-spacing: -.012em; }
+.q { margin: 12px 0 0; font-size: 28px; line-height: 1.13; letter-spacing: -.01em; text-wrap: balance; }
+.q.long { font-size: 25px; }
+.q em { color: var(--champ-hi); }
+.lead { margin: 14px 0 0; font-size: 15px; line-height: 1.55; color: rgba(243,235,221,.9); max-width: 34ch; }
+.hint { margin: 10px 0 0; font-family: var(--display); font-style: italic; font-size: 19px; line-height: 1.3; color: var(--champ-hi); text-shadow: 0 1px 12px rgba(12,10,6,.7), 0 0 2px rgba(12,10,6,.5); }
+
+/* glass for a screen that changes all the time: blur and rim over the live meadow (as in the guide) */
+.gl { background: rgba(18,15,9,.18); -webkit-backdrop-filter: blur(16px) saturate(1.45); backdrop-filter: blur(16px) saturate(1.45); border: 1px solid rgba(255,255,255,.18); box-shadow: inset 1.5px 1.5px 0 rgba(255,255,255,.45), inset -1px -1px 0 rgba(255,255,255,.14), inset 0 0 24px rgba(255,255,255,.08), 0 14px 34px -16px rgba(8,6,3,.6); text-shadow: 0 1px 10px rgba(10,8,4,.4); color: var(--ink); box-sizing: border-box; }
+button.gl, .gl.free { position: relative; }
+button.gl { transition: transform .25s cubic-bezier(.3,.7,.2,1), background .25s; }
+button.gl:active { transform: scale(.965); }
+button.gl:hover { background: rgba(255,255,255,.08); }
+.card { position: relative; border-radius: 22px; padding: 18px 20px 8px; }
+.card::after, .btn-p::after { pointer-events: none; }
+.li-row { display: grid; grid-template-columns: 34px 1fr; gap: 6px; padding: 10px 0; font-size: 15px; line-height: 1.45; }
+.li-row + .li-row { border-top: 1px solid var(--line); }
+.li-n { font-family: var(--display); font-style: italic; font-size: 17px; color: var(--champ); }
+.snd { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 54px; border-radius: 999px; font: 600 15px var(--body); letter-spacing: .01em; box-sizing: border-box; padding: 0 20px; }
+.btn-p { position: relative; overflow: hidden; background: var(--champ); color: var(--deep); transition: transform .25s cubic-bezier(.3,.7,.2,1); }
+.btn-p:hover { background: var(--champ-hi); }
+.btn-p:active { transform: scale(.965); }
+.btn-p[disabled] { opacity: .5; cursor: default; }
+nav { margin-top: auto; padding-top: 26px; display: flex; gap: 10px; }
+.link { align-self: center; min-height: 44px; margin-top: 6px; color: var(--soft); font: 500 13px var(--body); text-decoration: underline; text-underline-offset: 3px; text-shadow: 0 1px 8px rgba(10,8,4,.5); }
+
+/* writing */
+.answer { display: block; width: 100%; min-height: 168px; max-height: 52vh; border-radius: 20px; padding: 15px 17px; font: 400 16px/1.45 var(--body); color: var(--ink); resize: none; }
+.answer::placeholder, .field::placeholder { color: rgba(243,235,221,.62); }
+.field { display: block; width: 100%; min-height: 52px; border-radius: 18px; padding: 0 17px; font: 400 16px var(--body); color: var(--ink); }
+.answer:focus, .field:focus { outline: 2px solid var(--champ); outline-offset: 2px; }
+.under { display: flex; justify-content: space-between; gap: 12px; margin-top: 9px; font-size: 12px; color: rgba(243,235,221,.78); text-shadow: 0 1px 8px rgba(10,8,4,.5); }
+.err { margin: 10px 0 0; color: #F2B8A6; font-size: 14px; }
+
+/* progress: a thin champagne line per question of the part */
+.segs { display: grid; gap: 6px; }
+.segs span { height: 2px; background: var(--faint); }
+.segs span.on { background: var(--champ); }
+/* the six parts, lit one by one as the screen sets down (each one pops, as the points of the guide's plan) */
+.dots { display: flex; gap: 10px; margin-top: 26px; }
+.dot { width: 30px; height: 30px; box-sizing: border-box; border-radius: 50%; display: grid; place-items: center; font: 600 11px var(--body); position: relative; }
+.dot.todo { background: rgba(42,47,28,.75); border: 1px solid rgba(243,235,221,.7); color: var(--ink); font-weight: 500; }
+.dot.cur { background: var(--ink); color: var(--deep); }
+.dot.done { background: var(--champ); color: var(--deep); }
+.dot.cur::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 1.2px solid var(--champ); animation: ring 1.8s ease-out infinite; }
+@keyframes ring { from { transform: scale(.85); opacity: .9; } to { transform: scale(1.7); opacity: 0; } }
+.anim .pt { animation: pt 420ms cubic-bezier(.22,1,.36,1) calc(var(--d0, 600ms) + var(--i) * 110ms) backwards; }
+@keyframes pt { from { opacity: 0; transform: scale(.5); } }
+
+/* the questions still without an answer, on the last screen */
+.miss { display: grid; grid-template-columns: 34px 1fr 16px; gap: 6px; align-items: center; width: 100%; padding: 11px 0; text-align: left; font-size: 14px; line-height: 1.4; color: var(--ink); }
+.miss + .miss { border-top: 1px solid var(--line); }
+
+/* the note at the top while the answers travel */
+.send { position: fixed; left: 50%; transform: translateX(-50%); top: calc(14px + env(safe-area-inset-top, 0px)); z-index: 40; display: flex; align-items: center; gap: 9px; max-width: calc(100% - 32px); min-height: 28px; padding: 0 14px; border-radius: 999px; font: 600 12px var(--body); color: var(--ink); background: rgba(18,15,9,.62); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,.16); white-space: nowrap; }
+.send-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--champ); animation: blink 1.4s ease-in-out infinite; flex: none; }
+.send.ok .send-dot { animation: none; background: #B9D49A; }
+.send.err .send-dot { animation: none; background: var(--rec); }
+@keyframes blink { 50% { opacity: .3; } }
+
+/* Posa: each piece rises from its own base line, lifts a little, tilted up to the right like a cup held by the wrist, then sets down flat. */
+.posa { display: block; --tilt: -1.8deg; --dur: 820ms; }
+.posa.l { --tilt: -.9deg; }
+.posa > * { transform-origin: 20% 100%; }
+.anim .posa { animation: posa-clip var(--dur) linear var(--d, 0ms) backwards; }
+.anim .posa > * { animation: posa var(--dur) linear var(--d, 0ms) backwards; }
+@keyframes posa-clip { 0%, 99.9% { clip-path: inset(-120px -120px -.15em -120px); } 100% { clip-path: none; } }
+@keyframes posa { 0% { transform: translateY(calc(100% + 8px)) rotate(calc(var(--tilt) * 1.4)); animation-timing-function: cubic-bezier(.2,.75,.25,1); } 58% { transform: translateY(-9px) rotate(var(--tilt)); animation-timing-function: cubic-bezier(.45,0,.3,1); } 100% { transform: translateY(0) rotate(0deg); } }
+/* glass can't sit in a clipping wrapper: it fades in with the same lift */
+.free { transform-origin: 20% 100%; --tilt: -.9deg; --dur: 820ms; }
+.anim .free { animation: posa-free var(--dur) linear var(--d, 0ms) backwards; }
+@keyframes posa-free { 0% { opacity: 0; transform: translateY(40px) rotate(calc(var(--tilt) * 1.4)); animation-timing-function: cubic-bezier(.2,.75,.25,1); } 25% { opacity: 1; } 58% { transform: translateY(-9px) rotate(var(--tilt)); animation-timing-function: cubic-bezier(.45,0,.3,1); } 100% { opacity: 1; transform: translateY(0) rotate(0deg); } }
+.seg-new { transform-origin: left center; }
+.anim .seg-new { animation: seg 700ms cubic-bezier(.22,1,.36,1) var(--d, 520ms) backwards; }
+@keyframes seg { from { transform: scaleX(0); } }
+/* the rim of light running round the glass, and the sheen on the champagne button */
+.gl.free::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; opacity: 0; pointer-events: none; background: linear-gradient(100deg, transparent 35%, rgba(255,255,255,.95) 50%, transparent 65%) 0 0/300% 100% no-repeat; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.anim .gl.free::before { animation: rim 1.3s cubic-bezier(.45,0,.3,1) calc(var(--d, 0ms) + 600ms) backwards; }
+@keyframes rim { 0% { opacity: 1; background-position: 100% 0; } 80% { opacity: 1; } 100% { opacity: 0; background-position: 0 0; } }
+.btn-p::after { content: ""; position: absolute; inset: 0; opacity: 0; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.5) 50%, transparent 65%); }
+.anim .btn-p::after { animation: sheen 1.2s cubic-bezier(.45,0,.3,1) calc(var(--d, 0ms) + 700ms) backwards; }
+@keyframes sheen { 0% { opacity: 1; transform: translateX(-100%); } 90% { opacity: 1; } 100% { opacity: 0; transform: translateX(100%); } }
+/* between screens the motion is reset for a frame, so the next screen's pieces set down again */
+.prep .scr { opacity: 0; }
+@keyframes fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .anim .posa, .anim .gl.free::before, .anim .btn-p::after, .anim .seg-new, .anim .pt, .dot.cur::after, .send-dot { animation: none; }
+  .anim .posa > *, .anim .free { animation: fade .4s ease var(--d, 0ms) backwards; }
+}
+</style>
+</head>
+<body>
+<div class="bg prato" aria-hidden="true">
+  <video class="prato-video" src="../media/prato-vento.mp4" poster="../media/prato.webp" autoplay muted loop playsinline preload="auto"></video>
+  <div class="veil"></div>
+</div>
+<div id="app" class="anim"></div>
+<div class="send" id="send" hidden aria-live="polite"><span class="send-dot" aria-hidden="true"></span><span id="send-t"></span></div>
+
+<script>
+// ---- The questionnaire after the trial. One question a screen, saved on the phone as it is written, and sent by
+// itself to the owner's Drive (sheet «Questionario della prova», one row per person, updated as they go on). ----
+const CFG = window.GUIDA_CONFIG || {};
+const $ = (s) => document.querySelector(s);
+const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// *word* in a question is the part set in champagne italic, as in the guide's titles
+const rich = (t) => esc(t).replace(/\*([^*]+)\*/g, '<em>$1</em>');
+const plain = (t) => String(t).replace(/\*/g, '');
+
+const PARTS = [
+  { t1: 'Esigenze', t2: 'e aspettative', name: 'Esigenze e aspettative', qs: [
+    { t: 'Prima di provare il servizio, quali erano le tue *aspettative*?', h: 'Cosa ti aspettavi di ottenere?' },
+    { t: 'Quali difficoltà incontri attualmente nel mostrare ai potenziali ospiti *le caratteristiche e gli spazi* dei tuoi alloggi?' },
+    { t: 'Cosa vorresti che un video walkthrough facesse *concretamente per te*?' },
+    { t: 'Cosa vorresti che il video facesse *per i tuoi clienti*?' }] },
+  { t1: 'L’esperienza', t2: 'di registrazione', name: 'Esperienza di registrazione', qs: [
+    { t: 'Quanto *tempo* hai impiegato per registrare tutto il materiale richiesto?' },
+    { t: 'Quali istruzioni della guida ti sono sembrate *poco chiare*, difficili da seguire o superflue?' },
+    { t: 'Ci sono stati momenti in cui *non sapevi esattamente cosa fare* o come registrare una determinata parte dell’alloggio?' },
+    { t: 'Quale parte della registrazione ti ha richiesto *più tempo o fatica*?' },
+    { t: 'Se dovessi ripetere il procedimento su un altro alloggio, *cosa cambieresti*?' },
+    { t: 'Cosa potremmo fare per rendere la registrazione *più semplice*, veloce e meno impegnativa?' }] },
+  { t1: 'Il video', t2: 'finale', name: 'Valutazione del video finale', qs: [
+    { t: 'Il video rispecchia *fedelmente* l’alloggio reale?', h: 'Se noti differenze, quali sono?' },
+    { t: 'Quanto il video riesce a trasmettere correttamente *le dimensioni, la disposizione* e le caratteristiche degli ambienti?' },
+    { t: 'Ci sono elementi che risultano *poco realistici*, modificati o diversi dalla realtà?' },
+    { t: 'Il percorso all’interno della casa è *naturale* e permette di comprendere bene gli spazi?' },
+    { t: 'Quali sono gli aspetti del video che *ti sono piaciuti* maggiormente?' },
+    { t: 'Quali sono gli aspetti che *miglioreresti*?' },
+    { t: 'Se potessi modificare liberamente qualcosa del risultato, *cosa cambieresti*?' }] },
+  { t1: 'Utilità', t2: 'e valore', name: 'Utilità e valore del servizio', qs: [
+    { t: 'In che modo utilizzeresti questo video nella *gestione e nella promozione* dei tuoi alloggi?' },
+    { t: 'Dove lo mostreresti ai tuoi *potenziali ospiti*?', h: 'Ad esempio annunci, sito web, messaggi diretti o altri canali.' },
+    { t: 'Secondo te, in che modo potrebbe cambiare *la percezione dell’alloggio* da parte di un potenziale cliente?' },
+    { t: 'Ritieni che possa aiutare un cliente a capire meglio *cosa sta prenotando*?', h: 'Perché?' },
+    { t: 'Quali *vantaggi concreti* potrebbe portarti questo servizio?' },
+    { t: 'C’è qualcosa che ti aspettavi di trovare nel servizio e che invece *manca*?' }] },
+  { t1: 'La parte', t2: 'commerciale', name: 'Valutazione commerciale', qs: [
+    { t: 'Acquisteresti questo servizio per *uno o più dei tuoi alloggi*?', h: 'Perché?' },
+    { t: 'Quanto saresti disposto a pagare per realizzare un video di questo tipo per *una singola proprietà*?', p: 'Es. 150 €, e perché questa cifra' },
+    { t: 'Da cosa dipenderebbe la tua *decisione di acquistarlo*?' },
+    { t: 'Quali caratteristiche o miglioramenti renderebbero il servizio più interessante e *giustificherebbero un prezzo maggiore*?' },
+    { t: 'Preferiresti acquistare *un singolo video* oppure un servizio continuativo per più proprietà?', h: 'Perché?' }] },
+  { t1: 'Per', t2: 'finire', name: 'Considerazioni finali', qs: [
+    { t: 'Qual è il *problema più importante* che abbiamo riscontrato durante questa prova?' },
+    { t: 'Se potessi darci *un solo consiglio* per migliorare Vistara, quale sarebbe?' },
+    { t: 'C’è qualcos’altro che vorresti aggiungere e che *non ti abbiamo chiesto*?' }] }
+];
+// every question numbered 1–31, with its part
+const QS = [];
+PARTS.forEach((p, pi) => p.qs.forEach((q, k) => QS.push(Object.assign({ n: QS.length + 1, part: pi, k }, q))));
+const fullText = (q) => plain(q.t) + (q.h ? ' ' + q.h : '');
+// the screens in order: welcome, then each part (its title, its questions), the last look, thank you
+const SEQ = [{ t: 'intro' }];
+PARTS.forEach((p, pi) => { SEQ.push({ t: 'part', p: pi }); QS.filter((q) => q.part === pi).forEach((q) => SEQ.push({ t: 'q', n: q.n })); });
+SEQ.push({ t: 'review' }, { t: 'thanks' });
+const MINUTES = (pi) => Math.max(2, Math.round(PARTS[pi].qs.length * 0.6));
+const ROMAN = ['i.', 'ii.', 'iii.', 'iv.', 'v.', 'vi.'];
+
+// ---------- who answers: from the link (?casa=…&nome=…), otherwise asked on the first screen ----------
+const QP = new URLSearchParams(location.search);
+const LINK = { casa: (QP.get('casa') || '').trim(), nome: (QP.get('nome') || '').trim() };
+const KEY = 'questionario-v1:' + LINK.casa + '|' + LINK.nome;
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+let S = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch (_) { return null; } })();
+if (!S || !S.id) S = { id: newId(), nome: LINK.nome, casa: LINK.casa, a: {}, idx: 0, finito: false, fromReview: false };
+if (LINK.casa) S.casa = LINK.casa;
+if (LINK.nome) S.nome = LINK.nome;
+let saveT = null;
+function save(now) {
+  clearTimeout(saveT);
+  const w = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (_) {} };
+  if (now) w(); else saveT = setTimeout(w, 300);
+}
+const answered = () => QS.filter((q) => (S.a[q.n] || '').trim()).length;
+
+// ---------- sending: the whole row each time, the newest only, one call at a time; again when the connection returns ----------
+let dirty = false, inFlight = false, lastOk = 0, sendErr = false, hideT = null, fails = 0;
+let lastSent = '';   // the row as Drive last received it: an unchanged row is not sent again
+function snapshot() {
+  return { action: 'questionario', id: S.id, nome: S.nome || '', casa: S.casa || '', finito: !!S.finito,
+    domande: QS.map((q) => q.n + '. ' + fullText(q)), risposte: QS.map((q) => String(S.a[q.n] || '').slice(0, 5000)) };
+}
+function queueSend() { if (JSON.stringify(snapshot()) !== lastSent) dirty = true; pump(); }
+async function pump() {
+  if (inFlight || !dirty || !CFG.scriptUrl) { note(); return; }
+  if (navigator.onLine === false) { sendErr = true; note(); return; }
+  inFlight = true; dirty = false; note();
+  const body = JSON.stringify(snapshot());
+  try {
+    const r = await fetch(CFG.scriptUrl, { method: 'POST', body });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'risposta non valida');
+    lastOk = Date.now(); sendErr = false; lastSent = body; fails = 0; S.sentOnce = true; save(true);
+  } catch (e) {
+    dirty = true; sendErr = true;
+    console.warn('risposte non inviate:', e);
+    fails++; setTimeout(pump, Math.min(60000, 8000 * fails));
+  }
+  inFlight = false; note();
+  if (dirty && !sendErr) pump();
+  if (cur().t === 'thanks') draw(false);
+}
+window.addEventListener('online', () => { sendErr = false; pump(); });
+// leaving the page: whatever is still unsent goes with the page (keepalive survives the closing tab)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'hidden' || !CFG.scriptUrl || !(dirty || inFlight)) return;
+  try { fetch(CFG.scriptUrl, { method: 'POST', body: JSON.stringify(snapshot()), keepalive: true }); } catch (_) {}
+});
+// the small note at the top, in place of FORETASTE, only when there is something to say
+function note() {
+  const el = $('#send'), c = cur().t;
+  clearTimeout(hideT);
+  const show = (t, cls) => { el.hidden = false; el.className = 'send ' + (cls || ''); $('#send-t').textContent = t; document.body.classList.add('sending'); };
+  const hide = () => { el.hidden = true; document.body.classList.remove('sending'); };
+  if (!CFG.scriptUrl) return hide();
+  if (sendErr && (dirty || inFlight)) return show(navigator.onLine === false ? 'Senza connessione: le risposte restano sul telefono' : 'Nuovo tentativo di invio…', 'err');
+  if (inFlight && (c === 'review' || c === 'thanks')) return show('Invio delle risposte…');
+  if (!dirty && !inFlight && lastOk && Date.now() - lastOk < 2500) { show('Risposte salvate', 'ok'); hideT = setTimeout(hide, 2200); return; }
+  hide();
+}
+
+// ---------- sound: the guide's own, with the same switch (shared with the guide on this site) ----------
+const SND = {
+  on: true, blocked: false, waiting: false, claimAt: 0, clock: null, bc: null, fixed: null,
+  shared(patch) {
+    let s = { on: true, time: 0 };
+    try { s = Object.assign(s, JSON.parse(localStorage.getItem('guida-suoni-v2')) || {}); } catch (_) {}
+    if (patch) { s = Object.assign(s, patch); try { localStorage.setItem('guida-suoni-v2', JSON.stringify(s)); } catch (_) {} }
+    return s;
+  },
+  player() {
+    if (!window.__guidaMusica) { const a = new Audio('../media/gymnopedie.mp4'); a.loop = true; a.preload = 'auto'; window.__guidaMusica = a; }
+    return window.__guidaMusica;
+  },
+  ctx() {
+    const C = window.AudioContext || window.webkitAudioContext;
+    if (!window.__guidaAudio && C) window.__guidaAudio = new C();
+    return window.__guidaAudio || null;
+  },
+  musicOn() { return this.on && !this.blocked; },
+  // 3 s up, under 1 s down; at 0 it pauses. On iPhone the volume can't be set: there the music simply stops.
+  fadeTo(level, pause) {
+    const a = this.player();
+    if (this.fixed === null) { const v0 = a.volume; a.volume = v0 === 0.5 ? 0.4 : 0.5; this.fixed = a.volume === v0; a.volume = v0; }
+    clearInterval(a._fade);
+    if (this.fixed) { if (!level && pause) a.pause(); return; }
+    const step = (level - a.volume) / (level > a.volume ? 60 : 16);
+    if (!step) { if (pause && !level) a.pause(); return; }
+    a._fade = setInterval(() => {
+      const v = Math.min(1, Math.max(0, a.volume + step));
+      a.volume = v;
+      if (step > 0 ? v >= level : v <= level) { clearInterval(a._fade); if (pause && !level) a.pause(); }
+    }, 50);
+  },
+  start(time) {
+    const a = this.player();
+    if (time && Math.abs(a.currentTime - time) > 1) { try { a.currentTime = time; } catch (_) {} }
+    if (a.paused && this.fixed !== true) a.volume = 0;
+    this.blocked = false;
+    const claim = () => { this.claimAt = Date.now(); if (this.bc) this.bc.postMessage({ type: 'claim', at: this.claimAt }); this.fadeTo(0.45, false); };
+    const p = a.play();
+    if (p && p.then) p.then(claim, () => { this.blocked = true; this.waitForTouch(); drawSound(); });
+    else claim();
+    clearInterval(this.clock);
+    this.clock = setInterval(() => { if (!a.paused) this.shared({ time: a.currentTime }); }, 1000);
+  },
+  // browsers allow sound only after a touch: when autoplay is refused, the first touch anywhere starts it
+  waitForTouch() {
+    if (this.waiting) return;
+    this.waiting = true;
+    const wake = (e) => {
+      if (e.target && e.target.closest && e.target.closest('.snd')) return;
+      document.removeEventListener('pointerdown', wake, true);
+      document.removeEventListener('keydown', wake, true);
+      this.waiting = false;
+      if (!this.on) return;
+      const c = this.ctx();
+      if (c && c.state !== 'running') c.resume();
+      this.start(this.shared().time);
+      drawSound();
+    };
+    document.addEventListener('pointerdown', wake, true);
+    document.addEventListener('keydown', wake, true);
+  },
+  toggle() {
+    const c = this.ctx();
+    if (c && c.state !== 'running') c.resume();
+    if (this.musicOn()) {
+      this.on = false; clearInterval(this.clock);
+      this.shared({ on: false, time: this.player().currentTime });
+      this.fadeTo(0, true);
+      if (this.bc) this.bc.postMessage({ type: 'off' });
+    } else { this.on = true; this.shared({ on: true }); this.start(this.shared().time); }
+    drawSound();
+  },
+  live() { const c = this.ctx(); if (!c || !this.musicOn()) return null; if (c.state !== 'running') { c.resume(); return null; } return c; },
+  // tun-tun-ta-ta: one soft knock of hard wood per large piece as it sets down
+  knock(i) {
+    const c = this.live(), k = [[520, 0.1, 1], [520, 0.1, 0.9], [780, 0.07, 0.85], [710, 0.075, 0.8]][i - 1];
+    if (!c || !k) return;
+    const out = c.createGain(); out.gain.value = 0.22; out.connect(c.destination);
+    this.softWood(c, out, c.currentTime + 0.005, k[0], k[1], k[2]);
+  },
+  // a small, dry "ba", a touch higher for each part
+  pop(i) {
+    const c = this.live(); if (!c) return;
+    const t = c.currentTime + 0.005, p = 1 + (i - 1) * 0.04, out = c.createGain();
+    out.gain.value = 0.16; out.connect(c.destination);
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(620 * p, t); o.frequency.exponentialRampToValueAtTime(820 * p, t + 0.015);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.7, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+    o.connect(g).connect(out); o.start(t); o.stop(t + 0.06);
+    this.noise(c, out, t, 0.008, 'highpass', 2500, 0.3);
+  },
+  // a tap: a soft, short "tchk"
+  tchk() {
+    const c = this.live(); if (!c) return;
+    const t = c.currentTime + 0.005, out = c.createGain();
+    out.gain.value = 0.2; out.connect(c.destination);
+    this.noise(c, out, t, 0.022, 'bandpass', 2600, 0.45);
+    [[1250, 0.35, 0.018], [210, 0.6, 0.05]].forEach(([fr, a, dcy]) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(fr * 1.1, t + 0.012); o.frequency.exponentialRampToValueAtTime(fr, t + 0.03);
+      g.gain.setValueAtTime(0.0001, t + 0.012); g.gain.exponentialRampToValueAtTime(a, t + 0.014); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.012 + dcy);
+      o.connect(g).connect(out); o.start(t + 0.012); o.stop(t + 0.08);
+    });
+  },
+  softWood(c, out, t, f, decay, level) {
+    this.noise(c, out, t, 0.02, 'bandpass', 2400, 0.32 * level);
+    const s = t + 0.008;
+    [[f, 0.85, decay * 0.8], [f * 2.76, 0.14, decay * 0.35], [f * 0.42, 0.4, 0.05]].forEach(([fr, a, d]) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(fr * 1.06, s); o.frequency.exponentialRampToValueAtTime(fr, s + 0.025);
+      g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(a * level, s + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, s + d);
+      o.connect(g).connect(out); o.start(s); o.stop(s + d + 0.05);
+    });
+  },
+  noise(c, out, t, dur, type, freq, level) {
+    const n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = buf; f.type = type; f.frequency.value = freq; g.gain.value = level;
+    s.connect(f).connect(g).connect(out); s.start(t);
+  }
+};
+try {
+  SND.bc = new BroadcastChannel('guida-suoni');
+  SND.bc.onmessage = (e) => {
+    const m = e.data || {};
+    if (m.type === 'claim' && m.at > SND.claimAt) { SND.on = true; SND.blocked = false; SND.fadeTo(0, true); }
+    if (m.type === 'off') { SND.on = false; SND.fadeTo(0, true); }
+    drawSound();
+  };
+} catch (_) {}
+const app = $('#app');
+app.addEventListener('animationend', (e) => {
+  const i = (e.animationName === 'posa' || e.animationName === 'posa-free') && e.target.dataset ? Number(e.target.dataset.suono) : 0;
+  if (i) SND.knock(i);
+});
+app.addEventListener('animationstart', (e) => { if (e.animationName === 'pt') SND.pop(Number(e.target.style.getPropertyValue('--i')) || 1); });
+app.addEventListener('click', (e) => {
+  const t = e.target && e.target.closest ? e.target.closest('button, a') : null;
+  if (t && !t.closest('.snd')) SND.tchk();
+}, true);
+// after another app, a call or the lock screen the iPhone suspends the sound: the music stops, and the first touch brings it back
+document.addEventListener('visibilitychange', () => {
+  const a = window.__guidaMusica, v = $('.prato-video');
+  if (document.hidden) { if (a && !a.paused) { a.pause(); SND.paused = true; } if (v) v.pause(); return; }
+  if (v && v.style.visibility !== 'hidden') v.play().catch(() => {});
+  if (SND.paused && SND.musicOn()) SND.start(SND.shared().time);
+  SND.paused = false;
+});
+document.addEventListener('pointerdown', (e) => {
+  if (e.target.closest && e.target.closest('.snd')) return;
+  if (!SND.on) return;
+  const c = SND.ctx(); if (c && c.state !== 'running') { try { c.resume(); } catch (_) {} }
+  const a = window.__guidaMusica; if (a && a.paused && !SND.waiting) SND.start(SND.shared().time);
+}, true);
+
+// ---------- screens ----------
+const cur = () => SEQ[Math.max(0, Math.min(SEQ.length - 1, S.idx))];
+const ICON_ON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"></path><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"></path></svg>';
+const ICON_OFF = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"></path><path d="M16 9.5l5 5M21 9.5l-5 5"></path></svg>';
+const CHECK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D9C29A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px"><circle cx="12" cy="12" r="10"></circle><path d="M7.5 12.5l3 3 6-6.5"></path></svg>';
+function drawSound() {
+  const b = $('.snd'); if (!b) return;
+  const on = SND.musicOn();
+  b.innerHTML = on ? ICON_ON : ICON_OFF;
+  b.setAttribute('aria-pressed', String(on));
+  b.setAttribute('aria-label', on ? 'Spegni la musica' : 'Accendi la musica');
+}
+const head = () => `<p class="brand" aria-label="Foretaste">FORETASTE</p>
+  <header>
+    <div class="posa" style="--d: 0ms"><div style="display: flex; flex-direction: column; gap: 3px">
+      <span class="lab" style="font-size: 8px; letter-spacing: .34em; color: rgba(243,235,221,.7)">Il tuo</span>
+      <span class="dsp" style="font-size: 22px; letter-spacing: .14em; line-height: 1">PARERE</span>
+    </div></div>
+    <button type="button" class="gl free snd" style="--d: 30ms" data-a="sound"></button>
+  </header>`;
+const segs = (n, on, d) => `<div class="segs" aria-hidden="true" style="grid-template-columns: repeat(${n}, minmax(0, 1fr))">${Array.from({ length: n }, (_, k) => `<span class="${k <= on ? 'on' : ''} ${k === on ? 'seg-new' : ''}" style="--d: ${d || 520}ms"></span>`).join('')}</div>`;
+const topRow = (label, count) => `<div class="posa" style="--d: 100ms; margin-top: 30px"><div style="display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+      <span class="lab" style="color: rgba(243,235,221,.78)">${label}</span>
+      <span class="dsp" style="font-size: 15px; font-style: italic; color: var(--champ); white-space: nowrap">${count}</span>
+    </div>__SEGS__</div></div>`;
+const backBtn = (d) => `<button type="button" class="btn gl free" style="--d: ${d}ms; flex: 1; position: relative" data-a="back">Indietro</button>`;
+const nextBtn = (d, label, extra) => `<div class="posa" style="--d: ${d}ms; flex: 2; display: flex"><button type="button" class="btn btn-p" style="flex: 1" data-a="next" ${extra || ''}>${label}</button></div>`;
+
+function viewIntro() {
+  const resume = S.idx > 0 && answered() > 0, askNome = !LINK.nome, askCasa = !LINK.casa;
+  return `${head()}<main>
+    <div class="posa" style="--d: 100ms; margin-top: 30px"><div style="display: flex; flex-direction: column; gap: 12px">
+      <span class="lab" style="color: rgba(243,235,221,.78)">Dopo la prova</span>${segs(1, 0)}</div></div>
+    <h1 class="dsp h1">
+      <span class="posa" style="--d: 200ms"><span data-suono="1" style="display: block">Com’è</span></span>
+      <span class="posa" style="--d: 310ms"><span data-suono="2" style="display: block"><em>andata?</em></span></span>
+    </h1>
+    <div class="posa" style="--d: 450ms"><p class="lead" data-suono="3">Ti chiediamo di rispondere con la massima sincerità. Non ci sono risposte giuste o sbagliate: anche le critiche sono fondamentali per migliorare il prodotto.</p></div>
+    <section class="gl free card" data-suono="4" style="--d: 590ms; margin-top: 22px">
+      <h2 class="lab" style="margin: 0 0 6px; color: rgba(243,235,221,.82)">Come funziona</h2>
+      <ol style="list-style: none; margin: 0; padding: 0">
+        <li class="li-row"><span class="li-n">i.</span><span>${QS.length} domande in ${PARTS.length} parti, una alla volta. Circa 20 minuti.</span></li>
+        <li class="li-row"><span class="li-n">ii.</span><span>Scrivi con parole tue, oppure detta con il microfono della tastiera.</span></li>
+        <li class="li-row"><span class="li-n">iii.</span><span>Le risposte si salvano mentre scrivi: puoi fermarti e riprendere quando vuoi.</span></li>
+      </ol>
+    </section>
+    ${askNome || askCasa ? `<div class="free" style="--d: 650ms; margin-top: 18px"><div style="display: flex; flex-direction: column; gap: 10px">
+      ${askNome ? `<label class="lab" for="f-nome" style="color: var(--soft)">Il tuo nome</label><input class="gl field" id="f-nome" autocomplete="name" placeholder="Nome e cognome" value="${esc(S.nome)}">` : ''}
+      ${askCasa ? `<label class="lab" for="f-casa" style="color: var(--soft); ${askNome ? 'margin-top: 6px' : ''}">L’alloggio della prova</label><input class="gl field" id="f-casa" autocomplete="street-address" placeholder="Nome o indirizzo della struttura" value="${esc(S.casa)}">` : ''}
+      <p class="err" id="f-err" hidden></p></div></div>` : ''}
+    <nav>${nextBtn(760, resume ? `Riprendi da dove eri` : 'Inizia')}</nav>
+    ${resume ? `<button type="button" class="link" data-a="restart">Ricomincia da capo</button>` : ''}
+  </main>`;
+}
+function viewPart(pi) {
+  const p = PARTS[pi], n = p.qs.length, first = QS.find((q) => q.part === pi).n;
+  return `${head()}<main>
+    ${topRow(`Parte ${pi + 1} di ${PARTS.length}`, `${ROMAN[pi]}`).replace('__SEGS__', segs(PARTS.length, pi))}
+    <h1 class="dsp h1" style="margin-top: 28px">
+      <span class="posa" style="--d: 200ms"><span data-suono="1" style="display: block">${esc(p.t1)}</span></span>
+      <span class="posa" style="--d: 310ms"><span data-suono="2" style="display: block"><em>${esc(p.t2)}</em></span></span>
+    </h1>
+    <div class="posa" style="--d: 450ms"><p class="lead" data-suono="3">${n === 1 ? 'Una domanda' : n + ' domande'}, dalla ${first} alla ${first + n - 1}. Circa ${MINUTES(pi)} minuti.</p></div>
+    <div class="dots" aria-hidden="true" data-suono="4">${PARTS.map((_, k) => `<span class="dot pt ${k < pi ? 'done' : k === pi ? 'cur' : 'todo'}" style="--i: ${k + 1}; --d0: 640ms">${k + 1}</span>`).join('')}</div>
+    <nav>${backBtn(710)}${nextBtn(760, 'Avanti')}</nav>
+  </main>`;
+}
+function viewQ(n) {
+  const q = QS[n - 1], p = PARTS[q.part], v = S.a[n] || '', long = plain(q.t).length > 95;
+  return `${head()}<main>
+    ${topRow(esc(p.name), `${q.k + 1} / ${p.qs.length}`).replace('__SEGS__', segs(p.qs.length, q.k))}
+    <div class="posa" style="--d: 150ms; margin-top: 26px"><p class="lab" data-suono="1" style="margin: 0; color: var(--champ)">Domanda ${n} di ${QS.length}</p></div>
+    <div class="posa" style="--d: 220ms"><h1 class="dsp q ${long ? 'long' : ''}" id="q-t" data-suono="2">${rich(q.t)}</h1></div>
+    ${q.h ? `<div class="posa" style="--d: 360ms"><p class="hint" data-suono="3">${esc(q.h)}</p></div>` : ''}
+    <div class="free" data-suono="4" style="--d: 480ms; margin-top: 22px">
+      <textarea class="gl answer" id="ans" aria-labelledby="q-t" placeholder="${esc(q.p || 'Scrivi qui, con parole tue')}" maxlength="5000">${esc(v)}</textarea>
+      <div class="under"><span id="saved">${v.trim() ? 'Salvata sul telefono' : 'Puoi anche dettare con il microfono'}</span><span id="cnt"></span></div>
+    </div>
+    <nav>${backBtn(710)}${nextBtn(760, nextLabel(v), 'id="next"')}</nav>
+  </main>`;
+}
+const nextLabel = (v) => S.fromReview ? 'Torna al riepilogo' : v.trim() ? 'Avanti' : 'Salta per ora';
+function viewReview() {
+  const done = answered(), miss = QS.filter((q) => !(S.a[q.n] || '').trim());
+  return `${head()}<main>
+    ${topRow('Alla fine', `${done} / ${QS.length}`).replace('__SEGS__', segs(1, 0))}
+    <h1 class="dsp h1" style="margin-top: 28px">
+      <span class="posa" style="--d: 200ms"><span data-suono="1" style="display: block">Ci siamo</span></span>
+      <span class="posa" style="--d: 310ms"><span data-suono="2" style="display: block"><em>quasi</em></span></span>
+    </h1>
+    <div class="posa" style="--d: 450ms"><p class="lead" data-suono="3">${done === QS.length ? 'Hai risposto a tutte le domande.' : `Hai risposto a ${done} domande su ${QS.length}.`} Quando vuoi, tocca <strong>Invia le risposte</strong>: ci dice che hai finito.</p></div>
+    ${miss.length ? `<section class="gl free card" data-suono="4" style="--d: 590ms; margin-top: 22px">
+      <h2 class="lab" style="margin: 0 0 4px; color: rgba(243,235,221,.82)">Ancora senza risposta</h2>
+      <div>${miss.slice(0, 8).map((q) => `<button type="button" class="miss" data-a="goto" data-n="${q.n}"><span class="li-n">${q.n}.</span><span>${esc(plain(q.t))}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 5.5L16 12l-6.5 6.5"></path></svg></button>`).join('')}
+      ${miss.length > 8 ? `<p class="lab" style="margin: 6px 0 12px; color: var(--soft)">e altre ${miss.length - 8}</p>` : ''}</div>
+    </section>` : `<div class="posa" style="--d: 590ms; margin: 18px 2px 0"><p data-suono="4" style="margin: 0; display: flex; gap: 12px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: rgba(243,235,221,.9)">${CHECK}<span><span class="lab" style="font-size: 9px; color: var(--champ)">Tutto pronto</span><br>Puoi ancora tornare indietro e cambiare una risposta.</span></p></div>`}
+    <nav>${backBtn(710)}${nextBtn(760, 'Invia le risposte', done ? '' : 'disabled')}</nav>
+  </main>`;
+}
+function viewThanks() {
+  const arrived = !CFG.scriptUrl || (!dirty && !inFlight && S.sentOnce);
+  return `${head()}<main>
+    ${topRow('Fatto', '♥').replace('__SEGS__', segs(1, 0))}
+    <h1 class="dsp h1" style="margin-top: 28px">
+      <span class="posa" style="--d: 200ms"><span data-suono="1" style="display: block">Grazie,</span></span>
+      <span class="posa" style="--d: 310ms"><span data-suono="2" style="display: block"><em>davvero</em></span></span>
+    </h1>
+    <div class="posa" style="--d: 450ms"><p class="lead" data-suono="3">Grazie per aver dedicato il tuo tempo a questa prova. Il tuo contributo ci aiuterà a sviluppare un servizio realmente utile per chi gestisce strutture ricettive.</p></div>
+    <div class="posa" style="--d: 590ms; margin: 22px 2px 0"><p data-suono="4" style="margin: 0; display: flex; gap: 12px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: rgba(243,235,221,.9)">${CHECK}<span id="t-state"><span class="lab" style="font-size: 9px; color: var(--champ)">${arrived ? 'Risposte arrivate' : 'Invio in corso'}</span><br>${arrived ? 'Puoi chiudere la pagina.' : 'Tieni aperta la pagina ancora un momento.'}</span></p></div>
+    <nav>${nextBtn(760, 'Rivedi le risposte', 'data-a="review"')}</nav>
+  </main>`;
+}
+
+let prepT = null;
+function draw(animate) {
+  const c = cur();
+  const html = c.t === 'intro' ? viewIntro() : c.t === 'part' ? viewPart(c.p) : c.t === 'q' ? viewQ(c.n) : c.t === 'review' ? viewReview() : viewThanks();
+  if (animate === false) {
+    // only the words that changed (sending state on the last screen), no motion
+    if (c.t === 'thanks') { const tmp = document.createElement('div'); tmp.innerHTML = html; const a = tmp.querySelector('#t-state'), b = $('#t-state'); if (a && b) b.innerHTML = a.innerHTML; }
+    return;
+  }
+  app.className = 'prep';
+  app.innerHTML = `<div class="scr">${html}</div>`;
+  drawSound();
+  window.scrollTo(0, 0);
+  clearTimeout(prepT);
+  prepT = setTimeout(() => { app.className = 'anim'; }, 40);
+  const ta = $('#ans');
+  if (ta) { grow(ta); count(ta); }
+  note();
+}
+function grow(ta) { ta.style.height = 'auto'; ta.style.height = Math.max(168, ta.scrollHeight + 2) + 'px'; }
+function count(ta) { const n = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0; $('#cnt').textContent = n ? (n === 1 ? '1 parola' : n + ' parole') : ''; }
+function go(idx) { S.idx = Math.max(0, Math.min(SEQ.length - 1, idx)); save(true); draw(); }
+const idxOf = (pred) => SEQ.findIndex(pred);
+
+app.addEventListener('input', (e) => {
+  const t = e.target;
+  if (t.id === 'ans') {
+    const c = cur(); S.a[c.n] = t.value; save();
+    grow(t); count(t);
+    $('#saved').textContent = t.value.trim() ? 'Salvata sul telefono' : 'Puoi anche dettare con il microfono';
+    const nb = $('#next'); if (nb) nb.textContent = nextLabel(t.value);
+    clearTimeout(window.__qSend); window.__qSend = setTimeout(queueSend, 4000);
+  }
+  if (t.id === 'f-nome') { S.nome = t.value; save(); }
+  if (t.id === 'f-casa') { S.casa = t.value; save(); }
+});
+app.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const a = b.dataset.a, c = cur();
+  if (a === 'sound') return SND.toggle();
+  if (a === 'restart') {
+    if (!confirm('Ricominciare da capo? Le risposte scritte su questo telefono verranno cancellate.')) return;
+    S = { id: newId(), nome: LINK.nome || S.nome, casa: LINK.casa || S.casa, a: {}, idx: 0, finito: false, fromReview: false };
+    save(true); return draw();
+  }
+  if (a === 'back') {
+    if (c.t === 'q' && S.fromReview) { S.fromReview = false; return go(idxOf((x) => x.t === 'review')); }
+    return go(S.idx - 1);
+  }
+  if (a === 'goto') { S.fromReview = true; return go(idxOf((x) => x.t === 'q' && x.n === Number(b.dataset.n))); }
+  if (a === 'review') { S.fromReview = false; return go(idxOf((x) => x.t === 'review')); }
+  if (a === 'next') {
+    if (c.t === 'intro') {
+      const nome = $('#f-nome');
+      if (nome && !nome.value.trim()) { const er = $('#f-err'); er.hidden = false; er.textContent = 'Scrivi il tuo nome: serve per sapere di chi sono le risposte.'; nome.focus(); return; }
+      if (nome) S.nome = nome.value.trim();
+      const casaF = $('#f-casa'); if (casaF) S.casa = casaF.value.trim();
+      queueSend();
+      return go(S.idx > 0 && answered() > 0 ? S.idx : 1);
+    }
+    if (c.t === 'q') {
+      clearTimeout(window.__qSend); queueSend();
+      if (S.fromReview) { S.fromReview = false; return go(idxOf((x) => x.t === 'review')); }
+    }
+    if (c.t === 'review') { S.finito = true; queueSend(); return go(S.idx + 1); }
+    return go(S.idx + 1);
+  }
+});
+document.addEventListener('keydown', (e) => {
+  // ⌘/Ctrl + Invio: avanti, anche mentre si scrive
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { const nb = $('[data-a="next"]'); if (nb && !nb.disabled) nb.click(); }
+});
+
+// ---------- the meadow: with Low Power Mode the phone refuses to start videos by themselves; the photo stays until the first touch ----------
+(function meadow() {
+  const v = $('.prato-video'); if (!v) return;
+  v.muted = true; v.playsInline = true;
+  const p = v.play();
+  if (p && p.catch) p.catch(() => {
+    v.style.visibility = 'hidden';
+    document.addEventListener('pointerdown', () => v.play().then(() => { v.style.visibility = ''; }).catch(() => {}), { once: true, capture: true });
+  });
+})();
+
+// ---------- start ----------
+if (cur().t === 'thanks') S.idx = idxOf((x) => x.t === 'thanks');
+SND.on = !!SND.shared().on;
+if (SND.on) SND.start(SND.shared().time);
+draw();
+// anything written while offline last time goes now
+if (answered()) queueSend();
+</script>
+</body>
+</html>

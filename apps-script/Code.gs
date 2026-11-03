@@ -1,5 +1,6 @@
 /**
- * Guida alle riprese — riceve nel tuo Google Drive i video e i feedback mandati dalla guida.
+ * Guida alle riprese — riceve nel tuo Google Drive i video e i feedback mandati dalla guida,
+ * e le risposte al questionario dopo la prova (foretaste-riprese.github.io/questionario).
  *
  * Per ogni immobile crea una sottocartella nella cartella qui sotto; i video arrivano
  * direttamente dal telefono del cliente a Drive (questo script apre solo il "passaggio"),
@@ -23,6 +24,7 @@ function doPost(e) {
     if (req.action === 'start') return out(start(req));
     if (req.action === 'feedback') return out(feedback(req));
     if (req.action === 'report') return out(report(req));
+    if (req.action === 'questionario') return out(questionario(req));
     return out({ ok: false, error: 'azione sconosciuta' });
   } catch (err) {
     return out({ ok: false, error: String(err && err.message || err) });
@@ -74,6 +76,39 @@ function report(req) {
   const text = (v, n) => String(v || '').replace(/[\u0000-\u001f]+/g, ' ').slice(0, n);
   sheet.appendRow([new Date(), clean(req.casa, ''), text(req.kind, 80), text(req.detail, 1000), text(req.ua, 300), text(req.page, 300), text(req.build, 20)]);
   return { ok: true };
+}
+
+// Il questionario dopo la prova: una riga per persona nel foglio "Questionario della prova", con una colonna
+// per domanda. La pagina manda tutta la riga a ogni risposta: la stessa persona (stesso codice) aggiorna la sua riga.
+function questionario(req) {
+  const id = String(req.id || '').replace(/[^\w-]/g, '').slice(0, 40);
+  if (!id) throw new Error('questionario senza codice');
+  const domande = (Array.isArray(req.domande) ? req.domande : []).slice(0, 80).map((d) => cell(d, 400));
+  const risposte = (Array.isArray(req.risposte) ? req.risposte : []).slice(0, 80).map((r) => cell(r, 5000));
+  const header = ['Codice', 'Iniziato', 'Aggiornato', 'Stato', 'Nome', 'Alloggio', 'Risposte date'].concat(domande);
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);   // due invii della stessa persona insieme: una sola riga
+  try {
+    const sheet = namedSheet('Questionario della prova', header);
+    sheet.getRange(1, 1, 1, header.length).setValues([header]).setFontWeight('bold');
+    const found = sheet.getRange(1, 1, Math.max(1, sheet.getLastRow()), 1).createTextFinder(id).matchEntireCell(true).findNext();
+    const row = found ? found.getRow() : sheet.getLastRow() + 1;
+    const started = found ? sheet.getRange(row, 2).getValue() : new Date();
+    const date = risposte.filter((r) => r.trim()).length;
+    const vals = [id, started, new Date(), req.finito ? 'Completato' : 'In corso', cell(clean(req.nome, ''), 140), cell(clean(req.casa, ''), 140), date + ' di ' + domande.length].concat(risposte);
+    while (vals.length < header.length) vals.push('');
+    sheet.getRange(row, 1, 1, vals.length).setValues([vals]);
+    sheet.getRange(row, 8, 1, Math.max(1, risposte.length)).setWrap(true).setVerticalAlignment('top');
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true };
+}
+
+// Un testo scritto da un cliente, così com'è: mai preso per una formula del foglio.
+function cell(v, n) {
+  const t = String(v == null ? '' : v).replace(/[\u0000-\u0008\u000b-\u001f]+/g, ' ').slice(0, n);
+  return /^[=+\-@]/.test(t) ? "'" + t : t;
 }
 
 function casaFolder(name) {

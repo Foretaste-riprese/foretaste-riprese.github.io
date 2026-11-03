@@ -14,6 +14,7 @@ Una web app per i clienti di un'agenzia immobiliare: dal telefono il cliente seg
 | Questo repository | `Foretaste-riprese/foretaste-riprese.github.io`, **pubblico**. GitHub Pages pubblica il ramo **`prova-fotocamera`**, cartella `/` (non `main`) |
 | Il disegno della guida (canvas Claude Design) | https://claude.ai/artifact/7NN2ZMwx3rmTpH1Hf3JdYf, una tavola sola `project/Main.dc.html` |
 | La guida "grande" originale, 16 tavole (canvas) | https://claude.ai/artifact/FPq2VEwApcULY1hsFdqhjY, copia dei file in `design/generatore/canvas/project/` |
+| Il questionario dopo la prova | https://foretaste-riprese.github.io/questionario/ (con `?casa=…&nome=…`). Pagina a mano in `questionario/index.html`: stessi colori, Bodoni Moda, prato, vetro `.gl`, animazione «posa», musica e suoni copiati dalla guida (stesso interruttore `guida-suoni-v2`). Domande in `PARTS`. Manda tutta la riga all'azione `questionario` dello script, foglio «Questionario della prova» |
 | Video e feedback | Google Drive del proprietario, cartella **"Riprese proprietà dei miei clienti"**: una sottocartella per immobile, il foglio "Feedback della guida" e (dopo l'aggiornamento dello script) "Problemi della guida" |
 | Lo script Google che riceve | Apps Script "Guida alle riprese" nell'account del proprietario. Indirizzo in `config.js`. Il codice di riferimento è `apps-script/Code.gs` |
 | Vecchie prove su claude.ai (superate) | Pagina con archivio https://claude.ai/artifact/7hXVnd46fSKdnPfjr1Xtq7, versione "solo guida" https://claude.ai/artifact/YKkEQfjzLL8cesCqrhwMMW |
@@ -53,6 +54,8 @@ Poi, se serve, ripubblica il canvas con lo strumento Artifact: `url` del canvas,
 - Gli piace vedere le cose subito: pubblica, poi dì in poche righe cosa è cambiato e cosa deve fare lui.
 
 ## In sospeso
+
+0. **Questionario**: lo script del proprietario deve avere l'azione `questionario` (incollare tutto `apps-script/Code.gs`, rimettere l'ID cartella, portare i deployment alla nuova versione). Finché non lo fa, la pagina tiene le risposte sul telefono e riprova.
 
 1. **Segnalazioni automatiche**: la guida le manda già. Lo script nell'account del proprietario però non ha ancora l'azione `report`. Deve incollare tutto `apps-script/Code.gs` (rimettendo il suo ID cartella alla riga 11) e portare i deployment alla nuova versione. Finché non lo fa, le segnalazioni vengono ignorate senza danni.
 2. **Feedback in tempo reale a Claude**: idea proposta, non fatta. Lo script pubblica ogni feedback come commento in un repository **privato** `foretaste-feedback` (token GitHub nelle Proprietà dello script, mai nel codice), la sessione si iscrive alle notifiche e manda al proprietario un messaggio con le opzioni.

@@ -16,8 +16,8 @@ Le risposte arrivano nel foglio **Questionario della prova**, nella cartella dei
 ## Come funziona
 
 1. Il cliente apre il link dal telefono e segue la guida: setup, scelta dello spazio, un passo alla volta con la pianta.
-2. Ogni passo lo gira con l'app Fotocamera (4K, lente 0,5×), poi nella guida tocca **Scegli il video**.
-3. La guida manda il video a pezzi direttamente nel tuo Drive mentre lui passa al passo successivo; se cade la connessione riprende da sola.
+2. Ogni passo lo gira con la fotocamera dentro la guida (4K, lente 0,5×): tasto rosso, gira o cammina, stop. La guida passa subito al punto dopo con la fotocamera ancora accesa, senza uscire da Chrome. Se il telefono non permette la fotocamera nel browser, la guida torna al vecchio modo: app Fotocamera e **Scegli il video**.
+3. La guida manda il video a pezzi direttamente nel tuo Drive mentre lui passa al passo successivo; se cade la connessione riprende da sola. Se il telefono chiude la pagina, riaprendo il link la guida riparte dallo stesso passo.
 
 ## Cosa c'è
 

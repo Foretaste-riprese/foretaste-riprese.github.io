@@ -1,6 +1,9 @@
-// ---- The guide for clients: each step is filmed with the Camera app; the guide sends every video by itself
-// to the owner's Google Drive (through the Apps Script in apps-script/), while the client goes on with the next step. ----
+// ---- The guide for clients: each step is filmed with the phone's camera inside the guide (0.5× lens, 4K), without
+// leaving the page; the guide sends every video by itself to the owner's Google Drive (through the Apps Script in
+// apps-script/), while the client goes on with the next step. Where the camera can't be used here, the step is
+// filmed with the Camera app and picked from the gallery, as before. ----
 const PROPS = __PROPS__;
+PROPS.avviso = 'Nessuno';   // the canvas shows sample warnings; the guide has no sensors for them yet
 const CFG = window.GUIDA_CONFIG || {};
 const $ = (s) => document.querySelector(s);
 const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -17,6 +20,8 @@ function casa() {
   try { return localStorage.getItem('guida-casa') || ''; } catch (_) { return ''; }
 }
 function setCasa(v) { try { localStorage.setItem('guida-casa', v.trim()); } catch (_) {} }
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch (_) { return null; } };
+const lsSet = (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (_) {} };
 
 // ---------- sending: one video after the other, in 8 MB pieces, picking up again after a dropped connection ----------
 const PIECE = 8 * 1024 * 1024;   // a multiple of 256 KiB, as Drive asks
@@ -66,6 +71,10 @@ const STORE = (() => {
     add: (it) => write(['meta', 'file'], (t) => { t.objectStore('file').put(it.file, it.id); t.objectStore('meta').put(meta(it)); }),
     save: (it) => write(['meta'], (t) => t.objectStore('meta').put(meta(it))),
     drop: (id) => write(['meta', 'file'], (t) => { t.objectStore('meta').delete(id); t.objectStore('file').delete(id); }),
+    file: (id) => open().then((db) => new Promise((res, rej) => {
+      const g = db.transaction(['file'], 'readonly').objectStore('file').get(id);
+      g.onsuccess = () => res(g.result || null); g.onerror = () => rej(g.error);
+    })),
     all: () => open().then((db) => new Promise((res, rej) => {
       const t = db.transaction(['meta', 'file'], 'readonly'), out = [], m = t.objectStore('meta').getAll();
       m.onsuccess = () => m.result.forEach((x) => { const g = t.objectStore('file').get(x.id); g.onsuccess = () => { if (g.result) out.push(Object.assign(x, { file: g.result })); }; });
@@ -121,7 +130,7 @@ async function pump() {
   let it;
   while ((it = Q.find((x) => x.state === 'wait'))) {
     it.state = 'send'; status();
-    try { await sendOne(it); it.state = 'ok'; STORE.drop(it.id).catch(() => {}); }
+    try { await sendOne(it); it.state = 'ok'; it.file = null; STORE.drop(it.id).catch(() => {}); }
     catch (e) {
       it.state = 'wait'; it.errors = (it.errors || 0) + 1; status(true);
       if (it.errors === 3 && navigator.onLine) report('Invio del video non riuscito', `${it.name} · ${fmtMB(it.size)} · arrivati ${fmtMB(it.sent)} · ${(e && e.message) || e}`);
@@ -133,8 +142,15 @@ async function pump() {
 }
 window.addEventListener('online', pump);
 window.addEventListener('beforeunload', (e) => { if (pending().length) { e.preventDefault(); e.returnValue = ''; } });
-async function awake(on) {
-  try { if (on && !lock && navigator.wakeLock) lock = await navigator.wakeLock.request('screen'); else if (!on && lock) { await lock.release(); lock = null; } } catch (_) {}
+// The screen stays on while videos travel and while the camera is on (the phone gives the lock back when the page is left).
+async function awake() {
+  const on = busy || !!(CAM.stream || CAM.rec);
+  try {
+    if (on && !lock && navigator.wakeLock && !document.hidden) {
+      lock = await navigator.wakeLock.request('screen');
+      lock.addEventListener('release', () => { lock = null; });
+    } else if (!on && lock) { const l = lock; lock = null; await l.release(); }
+  } catch (_) {}
 }
 let hideT = null;
 function status(trouble) {
@@ -150,10 +166,17 @@ function status(trouble) {
 function enqueue(file, sc) {
   const steps = stepsOf(sc.key), st = steps[sc.i], ext = (file.name.match(/\.\w+$/) || ['.mp4'])[0].toLowerCase();
   const where = AREA(sc.key) + (sc.key === 'corridoio' ? '' : ' ' + SHAPES[sc.key].name);
-  const name = `${where} · passo ${String(sc.i + 1).padStart(2, '0')} di ${steps.length} · ${st.title}${ext}`;
-  const it = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), file, name, casa: casa() || 'Senza nome', type: file.type || 'video/mp4', size: file.size, sent: 0, state: 'wait' };
+  const c = casa() || 'Senza nome', base = `${where} · passo ${String(sc.i + 1).padStart(2, '0')} di ${steps.length} · ${st.title}`;
+  // the same step filmed again: the take still waiting is replaced; one already on its way stays, and the new one says «ripresa 2»
+  const same = (x) => x.casa === c && x.name.replace(/( · ripresa \d+)?\.\w+$/, '') === base;
+  Q.filter((x) => same(x) && x.state === 'wait' && !x.sent).forEach((x) => { Q.splice(Q.indexOf(x), 1); STORE.drop(x.id).catch(() => {}); });
+  const n = Q.filter(same).length;
+  const name = base + (n ? ` · ripresa ${n + 1}` : '') + ext;
+  const it = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), file, name, casa: c, type: file.type || 'video/mp4', size: file.size, sent: 0, state: 'wait' };
   Q.push(it);
-  STORE.add(it).catch((e) => report('Archivio del telefono non disponibile', `${it.name} · ${fmtMB(it.size)} · ${(e && (e.name || e.message)) || e}`));
+  // once in the browser's storage, the video is read from there: a take held in memory could make the phone close the page
+  STORE.add(it).then(() => STORE.file(it.id)).then((f) => { if (f && it.file) it.file = f; })
+    .catch((e) => report('Archivio del telefono non disponibile', `${it.name} · ${fmtMB(it.size)} · ${(e && (e.name || e.message)) || e}`));
   status(); pump();
 }
 
@@ -161,11 +184,23 @@ function enqueue(file, sc) {
 const OV = { screen: null };
 function sheet(html) { $('#sheet').className = 'sheet'; $('#sheet').innerHTML = html; $('#ov').hidden = false; }
 function closeSheet() { $('#ov').hidden = true; $('#sheet').innerHTML = ''; OV.screen = null; saveState(); applyUpdate(); }
-const KEEP = 'guida-stato:' + (fromLink || '');
+// Where the client is, kept in the browser's lasting storage: when the phone closes Chrome (or the page) and the client
+// comes back, even days later from the same link, the guide opens on the same step.
+const KEEP = 'guida-stato:' + (fromLink || ''), KEEP_DAYS = 7;
 function saveState() {
-  try { const c = (comp && comp.state) || {}; sessionStorage.setItem(KEEP, JSON.stringify({ scr: c.scr || null, hist: c.hist || [], rec: OV.screen })); } catch (_) {}
+  const c = (comp && comp.state) || {};
+  const v = JSON.stringify({ scr: c.scr || null, hist: c.hist || [], rec: OV.screen, t: Date.now() });
+  lsSet(KEEP, v);
+  try { sessionStorage.setItem(KEEP, v); } catch (_) {}
 }
-function loadState() { try { return JSON.parse(sessionStorage.getItem(KEEP) || 'null'); } catch (_) { return null; } }
+function loadState() {
+  const read = (t) => { try { return JSON.parse(t || 'null'); } catch (_) { return null; } };
+  let s = null;
+  try { s = read(sessionStorage.getItem(KEEP)); } catch (_) {}   // this same tab: always good
+  let l = read(lsGet(KEEP));
+  if (l && Date.now() - (l.t || 0) > KEEP_DAYS * 86400000) l = null;
+  return !s || (l && l.t > (s.t || 0)) ? l : s;
+}
 const X = '<button type="button" class="o-x" data-a="close" aria-label="Chiudi"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>';
 const li = (n, t) => `<li style="display: grid; grid-template-columns: 30px 1fr; gap: 6px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; line-height: 1.45"><span style="font-family: var(--display); font-style: italic; font-size: 17px; color: var(--champ)">${n}</span><span>${t}</span></li>`;
 
@@ -217,15 +252,182 @@ $('#sheet').addEventListener('click', (e) => {
 $('#ov').addEventListener('click', (e) => { if (e.target === $('#ov')) closeSheet(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#ov').hidden) closeSheet(); });
 
+// ---------- the camera inside the guide ----------
+// The phone's own camera, opened by the page: the 0.5× lens in 4K at 30 fps, kept on from one step to the next, so
+// each step is just: go to the point, press the red button, film, press stop. No app to switch to, no gallery,
+// no waiting: the take goes straight into the sending queue. The camera is on only on the recording screen.
+const CAM = { stream: null, opening: null, video: null, rec: null, chunks: [], t0: 0, tick: null, sc: null, failed: '', errors: 0 };
+const BITRATE = 30e6;   // 30 Mbit/s: close to the Camera app in 4K, and a minute of video is about 225 MB
+const MIME = (() => {
+  if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
+  return ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+})();
+const camUsable = () => !CAM.failed && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+const camWanted = () => !!comp && !document.hidden && comp.cur().type === 'rec';
+function camFail(e, where) {
+  const n = (e && e.name) || '';
+  // refused, or no camera: the guide goes back to the Camera app for the rest of the visit
+  if (/NotAllowed|NotFound|Security|NotSupported|TypeError/.test(n) || ++CAM.errors >= 3) CAM.failed = n || 'errore';
+  report('Fotocamera della guida non disponibile', `${where} · ${n} ${(e && e.message) || e}`);
+}
+async function camStream() {
+  const want = (id) => navigator.mediaDevices.getUserMedia({
+    video: Object.assign({ width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 30 } }, id ? { deviceId: { exact: id } } : { facingMode: { ideal: 'environment' } }),
+    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+  });
+  const known = lsGet('guida-lente');
+  let s;
+  try { s = await want(known); } catch (e) { if (!known || /NotAllowed|Security/.test(e.name)) throw e; lsSet('guida-lente', null); s = await want(null); }
+  if (!known) {
+    // the first time: look for the 0.5× lens among the cameras (their names are readable once allowed)
+    const cams = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+    const wide = cams.find((d) => /ultra/i.test(d.label)) || cams.find((d) => /0[.,]5/.test(d.label));
+    const now = s.getVideoTracks()[0].getSettings().deviceId;
+    if (wide && wide.deviceId && wide.deviceId !== now) {
+      s.getTracks().forEach((t) => t.stop());
+      s = await want(wide.deviceId);
+    }
+    if (wide && wide.deviceId) lsSet('guida-lente', wide.deviceId);
+  }
+  // Android: the wide lens is often a zoom below 1 on the main camera
+  const tr = s.getVideoTracks()[0], caps = tr.getCapabilities ? tr.getCapabilities() : {};
+  if (caps.zoom && caps.zoom.min < 1) { try { await tr.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] }); } catch (_) {} }
+  return s;
+}
+function camOpen() {
+  if (CAM.stream) return Promise.resolve(CAM.stream);
+  if (!CAM.opening) CAM.opening = camStream().then((s) => {
+    CAM.opening = null;
+    if (!camWanted()) { s.getTracks().forEach((t) => t.stop()); return null; }   // the client left meanwhile
+    CAM.stream = s; CAM.errors = 0; awake();
+    // the phone takes the camera away (a call, Control Center, another app): stop cleanly, ready to film again
+    s.getVideoTracks()[0].addEventListener('ended', () => { if (CAM.stream === s) { camLost('La fotocamera si è fermata: tocca il tasto rosso per riprendere.'); } });
+    camShow();
+    return s;
+  }, (e) => { CAM.opening = null; throw e; });
+  return CAM.opening;
+}
+function camClose() {
+  recCancel();
+  if (CAM.stream) CAM.stream.getTracks().forEach((t) => t.stop());
+  CAM.stream = null;
+  if (CAM.video) { CAM.video.srcObject = null; CAM.video.remove(); }
+  document.body.classList.remove('cam-on');
+  awake();
+}
+// The picture under the recording screen (the canvas's sketch stands in for it until the camera is on)
+function camShow() {
+  const rs = document.querySelector('#board .rec-screen');
+  if (!rs || !CAM.stream) return;
+  if (!CAM.video) {
+    const v = CAM.video = document.createElement('video');
+    v.className = 'cam-live'; v.muted = true; v.playsInline = true; v.autoplay = true;
+    v.setAttribute('playsinline', ''); v.setAttribute('muted', ''); v.setAttribute('aria-hidden', 'true');
+  }
+  const v = CAM.video;
+  if (v.srcObject !== CAM.stream) v.srcObject = CAM.stream;
+  if (v.parentNode !== rs) rs.prepend(v);
+  v.play().catch(() => {});
+  document.body.classList.add('cam-on');
+}
+function clock(ms) { const t = Math.floor(ms / 1000); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
+function recStart(sc) {
+  if (CAM.rec || !CAM.stream) return;
+  let r;
+  try { r = new MediaRecorder(CAM.stream, Object.assign({ videoBitsPerSecond: BITRATE, audioBitsPerSecond: 128000 }, MIME ? { mimeType: MIME } : {})); }
+  catch (e) { camFail(e, 'registrazione'); CAM.failed = CAM.failed || 'MediaRecorder'; camClose(); toCameraApp(sc); return; }
+  CAM.rec = r; CAM.sc = sc; CAM.chunks = [];
+  r.ondataavailable = (e) => { if (e.data && e.data.size) CAM.chunks.push(e.data); };
+  r.onerror = (e) => report('Registrazione interrotta', String((e.error && (e.error.name || e.error.message)) || e));
+  r.start(1000);
+  CAM.t0 = Date.now();
+  comp.setState({ clock: '0:00' });
+  CAM.tick = setInterval(() => comp.setState({ clock: clock(Date.now() - CAM.t0) }), 500);
+  awake();
+}
+// Stop the take: with keep, it becomes a video in the sending queue as soon as the phone hands it over.
+function recStop(keep) {
+  const r = CAM.rec, sc = CAM.sc, ms = Date.now() - CAM.t0;
+  if (!r) return;
+  CAM.rec = null; CAM.sc = null; clearInterval(CAM.tick);
+  r.onstop = () => {
+    const chunks = CAM.chunks; CAM.chunks = [];
+    if (!keep) return;
+    const type = (r.mimeType || MIME || 'video/mp4').split(';')[0], ext = /webm/.test(type) ? '.webm' : '.mp4';
+    const blob = new Blob(chunks, { type });
+    if (!blob.size) { report('Registrazione vuota', `${type} · ${clock(ms)}`); return; }
+    if (CFG.scriptUrl) enqueue(new File([blob], 'ripresa' + ext, { type }), sc);
+  };
+  try { r.stop(); } catch (_) {}
+}
+function recCancel() { if (CAM.rec) recStop(false); }
+// The take could not go on (the page was left, the camera was taken away): this step is ready to be filmed again.
+function camLost(note) {
+  const sc = CAM.sc || (comp && comp.cur());
+  const was = !!CAM.rec;
+  recCancel();
+  if (CAM.stream) { CAM.stream.getTracks().forEach((t) => t.stop()); CAM.stream = null; }
+  if (comp && sc && sc.type === 'rec' && (was || !sc.ready)) comp.enter({ type: 'rec', key: sc.key, i: sc.i, ready: true, guide: true, note }, comp.hist());
+}
+// The camera can't be used here: this step (and the next ones) with the Camera app, as before.
+function toCameraApp(sc) {
+  comp.enter({ type: 'step', key: sc.key, i: sc.i }, comp.hist());
+  OV.screen = { type: 'rec', key: sc.key, i: sc.i, guide: true }; drawRec();
+}
+// Keep the camera in step with the screen: on for the recording screen, recording while it is the "live" one.
+function camSync() {
+  if (!camWanted()) { if (CAM.stream || CAM.opening || CAM.rec) camClose(); return; }
+  const sc = comp.cur();
+  camOpen().then((s) => {
+    if (!s) return;
+    camShow();
+    const now = comp.cur();
+    if (now.type === 'rec' && !now.ready && !CAM.rec && now.key === sc.key && now.i === sc.i) recStart(now);
+  }).catch((e) => {
+    camFail(e, 'apertura');
+    const now = comp.cur();
+    if (now.type !== 'rec') return;
+    if (!camUsable()) toCameraApp(now);
+    else comp.enter({ type: 'rec', key: now.key, i: now.i, ready: true, guide: true, note: 'La fotocamera non si è accesa: tocca il tasto rosso per riprovare.' }, comp.hist());
+  });
+}
+
 // ---------- hooks into the guide ----------
 const _enter = Component.prototype.enter;
-Component.prototype.enter = function (screen, h) { _enter.call(this, screen, h); saveState(); };
+Component.prototype.enter = function (screen, h) {
+  comp = this;
+  // without the camera inside the guide, Registra opens the Camera app sheet, as before
+  if (screen && screen.type === 'rec' && !camUsable()) { OV.screen = { type: 'rec', key: screen.key, i: screen.i, guide: true }; drawRec(); return; }
+  if (screen && screen.type === 'end') { drawEnd(); return; }
+  const was = this.cur();
+  // leaving a take any way but Stop (never happens from the buttons): it is not kept
+  if (CAM.rec && !(screen && screen.type === 'rec' && !screen.ready && screen.key === was.key && screen.i === was.i)) recCancel();
+  _enter.call(this, screen, h);
+  saveState();
+  queueMicrotask(() => requestAnimationFrame(camSync));
+};
 const _go = Component.prototype.go;
 Component.prototype.go = function (screen, push) {
-  if (screen && screen.type === 'rec') { comp = this; OV.screen = screen; drawRec(); return; }
-  if (screen && screen.type === 'perm') return _go.call(this, { type: 'space' }, push);   // the Camera app asks for its own permissions
+  if (screen && screen.type === 'perm' && !camUsable()) return _go.call(this, { type: 'space' }, push);   // the Camera app asks for its own permissions
   if (screen && screen.type === 'end') { comp = this; drawEnd(); return; }
   return _go.call(this, screen, push);
+};
+// Stop: the take is kept (if long enough to be one) and the next step comes up, camera still on.
+const _afterRec = Component.prototype.afterRec;
+Component.prototype.afterRec = function (sc, recorded) {
+  if (recorded) {
+    if (!CAM.rec) { this.enter(Object.assign({}, sc, { ready: true, note: '' }), this.hist()); return; }   // stop before the camera started
+    if (Date.now() - CAM.t0 < 1500) { recCancel(); this.enter({ type: 'rec', key: sc.key, i: sc.i, ready: true, guide: true, note: 'Troppo breve: tocca il tasto rosso e riprendi il passo.' }, this.hist()); return; }
+    recStop(true);
+  }
+  return _afterRec.call(this, sc, recorded);
+};
+// The permission screen: the phone asks for camera and microphone once, here, before the first space.
+const _allow = Component.prototype.allowCamera;
+Component.prototype.allowCamera = function () {
+  const go = () => _allow.call(this);
+  if (!camUsable()) return go();
+  camStream().then((s) => { s.getTracks().forEach((t) => t.stop()); go(); }, (e) => { camFail(e, 'permesso'); go(); });
 };
 const _fb = Component.prototype.feedbackVals;
 Component.prototype.feedbackVals = function () {
@@ -263,10 +465,17 @@ document.addEventListener('pointerdown', (e) => { if (!(e.target.closest && e.ta
 // ---------- leaving the browser: the music stops (the client is going to the Camera app) and comes back after ----------
 document.addEventListener('visibilitychange', () => {
   const a = window.__guidaMusica, v = document.querySelector('#board .prato-video');
-  if (document.hidden) { if (a && !a.paused) { a.pause(); window.__guidaPausa = true; } if (v) v.pause(); return; }
+  if (document.hidden) {
+    if (a && !a.paused) { a.pause(); window.__guidaPausa = true; } if (v) v.pause();
+    // the phone stops the camera outside the page: a take cut short is not kept, the step is ready to be filmed again
+    if (comp && comp.cur().type === 'rec' && !comp.cur().ready) camLost('La ripresa si è interrotta quando sei uscito: riprendi il passo.');
+    camClose();
+    return;
+  }
   if (v && v.style.visibility !== 'hidden') v.play().catch(() => {});
-  if (window.__guidaPausa && comp && comp.musicOn()) comp.startMusic(comp.shared().time);
+  if (window.__guidaPausa && comp && comp.musicOn() && comp.cur().type !== 'rec') comp.startMusic(comp.shared().time);
   window.__guidaPausa = false;
+  camSync();
 });
 
 // ---------- the meadow: with Low Power Mode the phone refuses to start videos by themselves, and shows its own
@@ -298,7 +507,7 @@ async function checkUpdate() {
   } catch (_) {}
 }
 function applyUpdate() {
-  if (!newer || !$('#ov').hidden || pending().length) return;
+  if (!newer || !$('#ov').hidden || pending().length || (comp && comp.cur().type === 'rec')) return;
   try {
     // never twice in a row for the same version (the new page may take a minute to be everywhere)
     const last = JSON.parse(sessionStorage.getItem('guida-agg') || '{}');
@@ -318,7 +527,8 @@ comp = DC.mount($('#board'), $('#dc-tpl'), Component, PROPS);
 meadow();
 const was = loadState();
 if (was && was.scr) {
-  comp.enter(was.scr, was.hist || []);
+  const s = was.scr.type === 'rec' ? { type: 'step', key: was.scr.key, i: was.scr.i } : was.scr;
+  comp.enter(s, was.hist || []);
   if (was.rec) { OV.screen = was.rec; drawRec(); }
 }
 STORE.all().then((items) => {

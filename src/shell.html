@@ -95,6 +95,11 @@ body { background: var(--ground); color: var(--ink); overflow-x: hidden; }
 .send.ok .send-dot { animation: none; background: #B9D49A; }
 .send.err .send-dot { animation: none; background: var(--rec); }
 @keyframes blink { 50% { opacity: .3; } }
+/* the camera inside the guide: its live picture fills the recording screen, under the guide's glass */
+#board .rec-screen > video.cam-live { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; pointer-events: none; }
+.cam-on #board .rec-screen > .cam-ph { display: none; }
+/* no sensors for the level yet: no level */
+#board .rec-screen.avv-none .level { display: none; }
 /* the guide's own styles (from the canvas) */
 __HELMET_STYLE__
 </style>

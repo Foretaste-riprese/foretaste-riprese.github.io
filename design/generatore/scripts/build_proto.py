@@ -59,9 +59,17 @@ button.btn-p{border:0;cursor:pointer}
 @keyframes walk{0%,6%{offset-distance:0%}90%,100%{offset-distance:100%}}
 @media (prefers-reduced-motion: reduce){.anim .cone-rot,.anim .walker{animation:none}}
 .mini .pdot,.mini .plbl{display:none}
+.mini .pdot.cur{display:grid;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;font-size:8px}
 .ph{margin-top:12px;min-height:84px;border-radius:18px;border-style:dashed;display:grid;place-items:center;align-content:center;gap:4px;text-align:center;padding:10px}
 .stop{position:absolute;left:50%;margin-left:-42px;bottom:40px;width:84px;height:84px;border-radius:50%;border:2px solid #F3EBDD;background:transparent;display:grid;place-items:center;cursor:pointer;transition:transform .25s cubic-bezier(.3,.7,.2,1)}
 .stop:active{transform:scale(.94)}
+/* Ready to record: the camera's own red button, with the plan on one side and skipping on the other. */
+.recb{position:absolute;left:50%;margin-left:-42px;bottom:40px;width:84px;height:84px;border-radius:50%;border:3px solid #F3EBDD;background:transparent;display:grid;place-items:center;cursor:pointer;padding:0;transition:transform .25s cubic-bezier(.3,.7,.2,1)}
+.recb span{width:66px;height:66px;border-radius:50%;background:#E0583F}
+.recb:active{transform:scale(.94)}
+.rec-pill{display:inline-flex;align-items:center;gap:8px;height:48px;padding:0 18px;border-radius:999px;font:600 14px Archivo,system-ui,sans-serif;white-space:nowrap}
+.rec-side{position:absolute;bottom:58px}
+.chip.chip-note{position:static;opacity:1;background:rgba(18,15,9,.62);color:#F3EBDD;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.18);white-space:normal;text-align:center;height:auto;min-height:40px;padding:8px 16px}
 /* Same lift as "posa" for glass, which can't sit in a clipping wrapper: it fades in instead of rising from a line. */
 .free{transform-origin:20% 100%;--tilt:-.9deg;--dur:820ms}
 .anim .free{animation:posa-free var(--dur) linear var(--d,0ms) backwards}
@@ -236,6 +244,9 @@ ICON = lambda d, w=20: f'<svg width="{w}" height="{w}" viewBox="0 0 24 24" fill=
 CHEV_L = ICON('<path d="M14.5 5.5L8 12l6.5 6.5"></path>')
 CHEV_R = ICON('<path d="M9.5 5.5L16 12l-6.5 6.5"></path>')
 CLOSE = ICON('<path d="M6 6l12 12M18 6L6 18"></path>')
+REDO = ICON('<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"></path><path d="M4.5 4.5v4h4"></path>', 18)
+PLAN_I = ICON('<path d="M4 5h16v14H4z"></path><path d="M11 5v6H4M15 19v-5h5"></path>', 18)
+SKIP_I = ICON('<path d="M5 5.5l7 6.5-7 6.5M12.5 5.5l7 6.5-7 6.5"></path>', 18)
 SPK_ON = ICON('<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"></path><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"></path>', 18)
 SPK_OFF = ICON('<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"></path><path d="M16 9.5l5 5M21 9.5l-5 5"></path>', 18)
 EYE = ICON('<path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"></path><circle cx="12" cy="12" r="2.8"></circle>', 18)
@@ -763,15 +774,19 @@ SCREENS = f'''<sc-if value="{{{{ isSetup }}}}" hint-placeholder-val="{{{{ true }
     </sc-if>'''
 
 REC = f'''  <sc-if value="{{{{ isRec }}}}" hint-placeholder-val="{{{{ false }}}}">
-    <div class="rec-screen avv-{{{{ rec.avv }}}}" style="position: absolute; inset: 0; z-index: 5; background: radial-gradient(120% 70% at 60% 38%, #6b5a43 0%, #3d3327 45%, #1c1812 100%)">
-      <svg aria-hidden="true" viewBox="0 0 390 844" width="390" height="844" style="position: absolute; inset: 0">
+    <div class="rec-screen avv-{{{{ rec.avv }}}} {{{{ rec.mode }}}}" style="position: absolute; inset: 0; z-index: 5; background: radial-gradient(120% 70% at 60% 38%, #6b5a43 0%, #3d3327 45%, #1c1812 100%)">
+      <!-- The camera's picture goes under everything here; in the canvas a sketch stands in for it. -->
+      <svg class="cam-ph" aria-hidden="true" viewBox="0 0 390 844" width="390" height="844" style="position: absolute; inset: 0">
         <path d="M0 210 L150 300 L150 560 L0 690 M390 170 L262 292 L262 568 L390 720 M150 300 L262 292 M150 560 L262 568" fill="none" stroke="rgba(243,235,221,.10)" stroke-width="1.2"></path>
       </svg>
-      <p class="lab" style="position: absolute; left: 0; right: 0; top: 470px; margin: 0; text-align: center; font-size: 9px; color: rgba(243,235,221,.5)">Fotocamera · è già la vista in prima persona</p>
+      <p class="lab cam-ph" style="position: absolute; left: 0; right: 0; top: 470px; margin: 0; text-align: center; font-size: 9px; color: rgba(243,235,221,.5)">Fotocamera · è già la vista in prima persona</p>
       <sc-if value="{{{{ rec.guide }}}}" hint-placeholder-val="{{{{ true }}}}">
         <section class="gl free mini" style="--d: 0ms; position: absolute; left: 12px; right: 12px; top: 54px; border-radius: 22px; padding: 10px; display: grid; grid-template-columns: 132px 1fr; gap: 12px; align-items: center">
           {plan_html("rec.plan")}
-          <p style="margin: 0; padding-right: 40px; font-size: 14px; line-height: 1.45">{{{{ rec.text }}}}</p>
+          <div style="display: flex; flex-direction: column; gap: 6px; padding-right: 40px">
+            <span class="lab" style="font-size: 9px">{{{{ rec.passo }}}}</span>
+            <p style="margin: 0; font-size: 14px; line-height: 1.45">{{{{ rec.text }}}}</p>
+          </div>
           <button type="button" aria-label="Nascondi la guida" onClick="{{{{ rec.hide }}}}" style="position: absolute; top: 4px; right: 4px; width: 44px; height: 44px; display: grid; place-items: center; color: #F3EBDD">{CLOSE}</button>
         </section>
       </sc-if>
@@ -779,6 +794,7 @@ REC = f'''  <sc-if value="{{{{ isRec }}}}" hint-placeholder-val="{{{{ false }}}}
         <button type="button" class="gl free" style="--d: 0ms; position: absolute; top: 54px; left: 12px; height: 44px; padding: 0 18px; border-radius: 999px" onClick="{{{{ rec.show }}}}"><span class="lab">Mostra guida</span></button>
       </sc-if>
       <!-- Live guidance: the reticle in the middle shows how far to turn or walk, the level, and one warning at a time. -->
+      <sc-if value="{{{{ rec.live }}}}" hint-placeholder-val="{{{{ true }}}}">
       <div style="position: absolute; left: 0; right: 0; top: 300px; height: 200px; display: grid; place-items: center; pointer-events: none">
         <div class="level" aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 99px; height: 2px">
           <span class="lv" style="position: absolute; left: 22px; width: 64px; height: 2px"></span>
@@ -814,8 +830,25 @@ REC = f'''  <sc-if value="{{{{ isRec }}}}" hint-placeholder-val="{{{{ false }}}}
         <span class="chip chip-dritto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h7M14 12h7"></path><circle cx="12" cy="12" r="2"></circle></svg>Tieni il telefono dritto</span>
         <span class="chip chip-luce gl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2"></path></svg>Poca luce: accendi le luci</span>
       </div>
-      <div class="gl free" style="--d: 120ms; position: absolute; left: 50%; margin-left: -50px; width: 100px; bottom: 146px; height: 40px; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums"><span class="rec-dot" aria-hidden="true" style="width: 9px; height: 9px; border-radius: 50%; background: #E0583F"></span>0:07</div>
+      <div class="gl free" style="--d: 120ms; position: absolute; left: 50%; margin-left: -50px; width: 100px; bottom: 146px; height: 40px; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums"><span class="rec-dot" aria-hidden="true" style="width: 9px; height: 9px; border-radius: 50%; background: #E0583F"></span>{{{{ rec.clock }}}}</div>
       <button type="button" class="stop" aria-label="Ferma la registrazione" onClick="{{{{ rec.stop }}}}"><span style="width: 30px; height: 30px; border-radius: 8px; background: #E0583F"></span></button>
+      </sc-if>
+      <!-- Ready: the camera stays on between one step and the next. Go to the point and press the red button. -->
+      <sc-if value="{{{{ rec.ready }}}}" hint-placeholder-val="{{{{ false }}}}">
+        <sc-if value="{{{{ rec.hasNote }}}}" hint-placeholder-val="{{{{ false }}}}">
+          <div aria-live="polite" style="position: absolute; left: 16px; right: 16px; bottom: 206px; display: flex; justify-content: center; pointer-events: none"><span class="chip chip-note">{{{{ rec.note }}}}</span></div>
+        </sc-if>
+        <sc-if value="{{{{ rec.hasRedo }}}}" hint-placeholder-val="{{{{ false }}}}">
+          <div style="position: absolute; left: 16px; right: 16px; bottom: 146px; display: flex; justify-content: center">
+            <button type="button" class="gl free rec-pill" style="--d: 80ms" onClick="{{{{ rec.redo }}}}">{REDO}<span>{{{{ rec.redoLabel }}}}</span></button>
+          </div>
+        </sc-if>
+        <button type="button" class="gl free rec-pill rec-side" style="--d: 40ms; left: 16px" onClick="{{{{ rec.toPlan }}}}">{PLAN_I}<span>Pianta</span></button>
+        <button type="button" class="recb" aria-label="Registra" onClick="{{{{ rec.start }}}}"><span></span></button>
+        <sc-if value="{{{{ rec.canSkip }}}}" hint-placeholder-val="{{{{ false }}}}">
+          <button type="button" class="gl free rec-pill rec-side" style="--d: 60ms; right: 16px" onClick="{{{{ rec.skip }}}}">{SKIP_I}<span>Salta</span></button>
+        </sc-if>
+      </sc-if>
     </div>
   </sc-if>'''
 
@@ -1204,6 +1237,15 @@ FLOW_METHODS = r"""  // ---- Navigation: one artboard holds the whole flow; hist
     if (sc.i + 1 < n) this.go({ type: 'step', key: sc.key, i: sc.i + 1 });
     else this.go({ type: 'done', key: sc.key });
   }
+  // After a take (or a skipped point) the camera stays on and shows the next step, ready: one tap to record it.
+  // The history stays the one of the step screens, so Pianta and Indietro work as before.
+  afterRec(sc, recorded) {
+    const n = stepsOf(sc.key).length, h = this.hist().concat([{ type: 'step', key: sc.key, i: sc.i }]);
+    if (sc.i + 1 < n) this.enter({ type: 'rec', key: sc.key, i: sc.i + 1, ready: true, guide: true, prev: recorded ? sc.i : null }, h);
+    else this.enter({ type: 'done', key: sc.key }, h);
+  }
+  // The permission screen: in the canvas it only moves on; the guide asks the phone for camera and microphone here.
+  allowCamera() { this.go({ type: 'space' }); }
   // Feedback: kept in state for the prototype; where it is sent is decided with the real guide.
   feedbackVals() {
     const st = this.state || {}, fb = st.fb || {}, max = Math.max(20, Math.round(this.props.feedbackMax ?? 300));
@@ -1253,7 +1295,7 @@ FLOW_METHODS = r"""  // ---- Navigation: one artboard holds the whole flow; hist
     }
     if (sc.type === 'perm') {
       // In the canvas this only moves on; the working prototype asks the phone for camera and microphone here.
-      v.perm = { allow: () => this.go({ type: 'space' }) };
+      v.perm = { allow: () => this.allowCamera() };
     }
     if (sc.type === 'pick') {
       const rooms = sc.group === 'rooms', keys = rooms ? ROOMS : STAIRS;
@@ -1274,10 +1316,10 @@ FLOW_METHODS = r"""  // ---- Navigation: one artboard holds the whole flow; hist
       v.step = { fp: fpOf(sc.key, st), view: fpOn ? 'v-fp' : 'v-plan', planOn: fpOn ? 'false' : 'true', fpOn: fpOn ? 'true' : 'false',
         showPlan: () => this.setState({ fpView: false }), showFp: () => this.setState({ fpView: true }),
         area, passo: `${sc.i + 1} / ${steps.length}`, n: steps.length, segs, actions, kicker, t1, t2, text: st.text, plan: planOf(sc.key, st), isTurn: st.kind === 'turn',
-        skip: () => this.nextStep(sc), rec: () => this.go({ type: 'rec', key: sc.key, i: sc.i, guide: true }) };
+        skip: () => this.nextStep(sc), rec: () => this.enter({ type: 'rec', key: sc.key, i: sc.i, guide: true }, this.hist()) };
     }
     if (sc.type === 'rec') {
-      const st = stepsOf(sc.key)[sc.i];
+      const steps = stepsOf(sc.key), st = steps[sc.i], ready = !!sc.ready, prev = ready && sc.prev != null ? steps[sc.prev] : null;
       const rp = planOf(sc.key, st), turn = st.kind === 'turn';
       const AVV = { Automatico: 'auto', Nessuno: 'none', 'Più piano': 'piano', 'Tieni dritto': 'dritto', 'Poca luce': 'luce' };
       v.rec = { plan: rp, guide: !!sc.guide, noGuide: !sc.guide, isTurn: turn, isWalk: !turn,
@@ -1285,10 +1327,18 @@ FLOW_METHODS = r"""  // ---- Navigation: one artboard holds the whole flow; hist
         rdur: rp.rdur, wdur: rp.wdur, deg: (turn ? st.arc.gradi : 0) + 'deg',
         dashEnd: (553 * (1 - (turn ? st.arc.gradi : 0) / 360)).toFixed(1),
         avv: AVV[this.props.avviso] || 'auto',
-        text: st.title + ': ' + (st.kind === 'turn' ? `gira verso destra, ${turnWords(st.arc.gradi)}.` : 'cammina piano seguendo la freccia.'),
+        text: ready ? st.text : st.title + ': ' + (st.kind === 'turn' ? `gira verso destra, ${turnWords(st.arc.gradi)}.` : 'cammina piano seguendo la freccia.'),
+        passo: `Passo ${sc.i + 1} di ${steps.length}`,
+        ready, live: !ready, mode: ready ? 'is-ready' : 'is-live', clock: (this.state && this.state.clock) || '0:00',
+        hasNote: ready && !!sc.note, note: sc.note || '', canSkip: ready && turn,
+        hasRedo: !!prev, redoLabel: prev ? 'Rifai «' + prev.title + '»' : '',
         hide: () => this.setState({ scr: Object.assign({}, sc, { guide: false }) }),
         show: () => this.setState({ scr: Object.assign({}, sc, { guide: true }) }),
-        stop: () => this.nextStep({ type: 'step', key: sc.key, i: sc.i }) };
+        start: () => this.enter({ type: 'rec', key: sc.key, i: sc.i, guide: true }, this.hist()),
+        stop: () => this.afterRec(sc, true),
+        skip: () => this.afterRec(sc, false),
+        toPlan: () => this.enter({ type: 'step', key: sc.key, i: sc.i }, this.hist()),
+        redo: () => this.enter({ type: 'rec', key: sc.key, i: sc.prev, ready: true, guide: true }, this.hist().slice(0, -1)) };
     }
     return v;
   }

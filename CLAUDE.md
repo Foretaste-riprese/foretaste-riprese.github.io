@@ -64,11 +64,8 @@ Poi, se serve, ripubblica il canvas con lo strumento Artifact: `url` del canvas,
 
 ## In sospeso
 
-- **Foto aperte come video nel Drive** (5/11): lo script accettava solo `video/*` e `audio/*` e dava a tutto il resto il tipo `video/mp4`, quindi le foto si potevano solo scaricare. Corretto in `apps-script/Code.gs` (accetta `image/jpeg` e simili): **il proprietario deve incollarlo e portare i deployment alla nuova versione**. Le foto arrivate prima restano «video» nel Drive (scaricate si aprono come JPG).
+0. (Fatto il 5/11) Il proprietario ha incollato l'ultimo `apps-script/Code.gs` e aggiornato i deployment: ora lo script ha le azioni `questionario` e `report` e salva le foto come `image/jpeg` (prima diventavano «video/mp4» e nel Drive si potevano solo scaricare; le foto arrivate prima del 5/11 pomeriggio restano così). Dopo ogni modifica futura allo script: incollare, rimettere l'ID cartella, nuova versione di ogni deployment.
 
-0. **Questionario**: lo script del proprietario deve avere l'azione `questionario` (incollare tutto `apps-script/Code.gs`, rimettere l'ID cartella, portare i deployment alla nuova versione). Finché non lo fa, la pagina tiene le risposte sul telefono e riprova.
-
-1. **Segnalazioni automatiche**: la guida le manda già. Lo script nell'account del proprietario però non ha ancora l'azione `report`. Deve incollare tutto `apps-script/Code.gs` (rimettendo il suo ID cartella alla riga 11) e portare i deployment alla nuova versione. Finché non lo fa, le segnalazioni vengono ignorate senza danni.
 2. **Feedback in tempo reale a Claude**: idea proposta, non fatta. Lo script pubblica ogni feedback come commento in un repository **privato** `foretaste-feedback` (token GitHub nelle Proprietà dello script, mai nel codice), la sessione si iscrive alle notifiche e manda al proprietario un messaggio con le opzioni.
 3. **Dominio proprio** (es. `riprese.foretaste.it`): rimandato per costi. Richiede un record CNAME, un Custom domain su Pages e il nuovo indirizzo in `ORIGINS`.
 4. **Scala (centinaia di migliaia di immobili)**: il proprietario usa un CRM e contatta via WhatsApp. Piano: un link per immobile generato dal CRM, invio con WhatsApp Business Platform, archivio video vero (Cloudflare R2 o S3) al posto di Drive, stato che torna nel CRM. Non iniziato; servono nome del CRM, volumi e conservazione dei video.

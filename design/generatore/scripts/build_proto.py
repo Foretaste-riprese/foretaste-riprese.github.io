@@ -854,11 +854,6 @@ REC = f'''  <sc-if value="{{{{ isRec }}}}" hint-placeholder-val="{{{{ false }}}}
         </sc-if>
         <button type="button" class="gl free rec-pill rec-side" style="--d: 40ms; left: 16px" onClick="{{{{ rec.toPlan }}}}">{PLAN_I}<span>Pianta</span></button>
         <button type="button" class="recb" aria-label="Registra" onClick="{{{{ rec.start }}}}"><span></span></button>
-        <sc-if value="{{{{ rec.canShape }}}}" hint-placeholder-val="{{{{ false }}}}">
-          <div style="position: absolute; left: 16px; right: 16px; bottom: 146px; display: flex; justify-content: center">
-            <button type="button" class="gl free rec-pill" style="--d: 80ms" onClick="{{{{ rec.shape }}}}">{SHAPE_I}<span>Cambia forma della stanza</span></button>
-          </div>
-        </sc-if>
         <sc-if value="{{{{ rec.canSkip }}}}" hint-placeholder-val="{{{{ false }}}}">
           <button type="button" class="gl free rec-pill rec-side" style="--d: 60ms; right: 16px" onClick="{{{{ rec.skip }}}}">{SKIP_I}<span>Salta</span></button>
         </sc-if>
@@ -1291,7 +1286,7 @@ FLOW_METHODS = r"""  // ---- Navigation: one artboard holds the whole flow; hist
       snd: this.glass('snd'), fig: this.glass('fig'), back: this.glass('back'), fb: this.feedbackVals(),
       setup: { items: [], segs: [] }, perm: {}, pick: { tiles: [], go: {} }, step: { plan: BLANK, fp: {}, segs: [], actions: [] }, rec: { plan: BLANK },
       space: {
-        ambiente: () => this.go({ type: 'rec', key: 'rettangolare', i: 0, ready: true, guide: true }), corridoio: () => this.go({ type: 'rec', key: 'corridoio', i: 0, ready: true, guide: true }),
+        ambiente: () => this.go({ type: 'pick', group: 'rooms' }), corridoio: () => this.go({ type: 'step', key: 'corridoio', i: 0 }),
         scala: () => this.go({ type: 'pick', group: 'stairs' }), finish: () => this.go({ type: 'end' }),
         crumb: sc.fatto ? 'Spazio finito · scegli il prossimo' : 'Scegli lo spazio',
         hasRedo: !!sc.fatto && sc.last != null, redoLabel: sc.fatto && sc.last != null ? 'Rifai «' + stepsOf(sc.fatto)[sc.last].title + '»' : '',
@@ -1315,10 +1310,10 @@ FLOW_METHODS = r"""  // ---- Navigation: one artboard holds the whole flow; hist
       const rooms = sc.group === 'rooms', keys = rooms ? ROOMS : STAIRS;
       const go = {};
       // Holes can't read a hyphen, so 'scala-dritta' is reached as go.scala_dritta.
-      ROOMS.concat(STAIRS).forEach((k) => { go[k.replace('-', '_')] = () => this.go({ type: 'rec', key: k, i: 0, ready: true, guide: true }); });
+      ROOMS.concat(STAIRS).forEach((k) => { go[k.replace('-', '_')] = () => this.go({ type: 'step', key: k, i: 0 }); });
       v.pick = { rooms, stairs: !rooms, go, crumb: rooms ? 'Ambiente' : 'Scalinata', t1: rooms ? 'Che forma' : 'Che scala', t2: rooms ? 'ha?' : 'è?',
         tiles: keys.map((k, i) => ({ name: SHAPES[k].name, plan: planOf(k), d: (450 + i * 60) + 'ms', s: i === 0 ? '3' : '',
-          pick: () => this.go({ type: 'rec', key: k, i: 0, ready: true, guide: true }) })) };
+          pick: () => this.go({ type: 'step', key: k, i: 0 }) })) };
     }
     if (sc.type === 'step') {
       const steps = stepsOf(sc.key), st = steps[sc.i], [t1, t2] = splitTitle(st.title);
@@ -1343,7 +1338,6 @@ FLOW_METHODS = r"""  // ---- Navigation: one artboard holds the whole flow; hist
         avv: AVV[this.props.avviso] || 'auto',
         text: ready ? st.text : st.title + ': ' + (st.kind === 'turn' ? `gira verso destra, ${turnWords(st.arc.gradi)}.` : 'cammina piano, guardando avanti.'),
         passo: (sc.key === 'corridoio' ? '' : SHAPES[sc.key].name + ' · ') + `passo ${sc.i + 1} di ${steps.length}`,
-        canShape: ready && sc.i === 0 && ROOMS.includes(sc.key), shape: () => this.go({ type: 'pick', group: 'rooms' }),
         trailText: turn ? 'Segui la freccia · ' + turnWords(st.arc.gradi) : '', aimLen: (turn ? st.arc.gradi * 6 : 0) + 'px',
         ready, live: !ready, mode: ready ? 'is-ready' : 'is-live', clock: (this.state && this.state.clock) || '0:00',
         hasNote: ready && !!sc.note, note: sc.note || '', canSkip: ready && turn,

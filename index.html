@@ -17,7 +17,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="it_IT">
 <meta name="twitter:card" content="summary_large_image">
-<script>window.GUIDA_BUILD = 'e87ade0db5';</script>
+<script>window.GUIDA_BUILD = '87baf7dc3f';</script>
 <script src="config.js?v=0c99e2d2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
@@ -2655,6 +2655,15 @@ Component.prototype.fadeTo = function (level, pause) {
   clearInterval(a._fade);
   if (!level && pause) a.pause();
 };
+// The speaker switched off holds for this visit only (this tab: the guide and the questionnaire alike): on the next
+// visit music and effects start again at the first touch. Before, «off» was kept for good and the first touch did nothing.
+function soundOffThisVisit(off) { try { if (off) sessionStorage.setItem('guida-muto', '1'); else sessionStorage.removeItem('guida-muto'); } catch (_) {} }
+function soundOnForNewVisit() {
+  try {
+    const s = JSON.parse(localStorage.getItem('guida-suoni-v2') || '{}');
+    if (s.on === false && !sessionStorage.getItem('guida-muto')) { s.on = true; localStorage.setItem('guida-suoni-v2', JSON.stringify(s)); }
+  } catch (_) {}
+}
 // The speaker: it goes by what is really heard. The guide could believe the music was stopped while it played (the
 // iPhone refused it, then it started at a touch; another open guide took it over): then the first tap «turned it on»
 // and the music went on. Now a tap while the music plays always stops it, and with the speaker off the music is
@@ -2665,6 +2674,7 @@ Component.prototype.toggleMusic = function () {
   if (!a.paused) { this._on = true; this._blocked = false; }   // it plays: this tap turns it off
   _toggleMusic.call(this);
   if (!this._on) { clearInterval(a._fade); a.pause(); }
+  soundOffThisVisit(!this._on);
 };
 function guardMusic() {
   const a = comp && comp.player();
@@ -2769,6 +2779,7 @@ setTimeout(checkUpdate, 4000);
 setInterval(checkUpdate, 3 * 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
 
+soundOnForNewVisit();
 comp = DC.mount($('#board'), $('#dc-tpl'), Component, PROPS);
 guardMusic();
 meadow();

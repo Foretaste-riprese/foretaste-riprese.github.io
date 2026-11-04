@@ -314,6 +314,11 @@ function note() {
 }
 
 // ---------- sound: the guide's own, with the same switch (shared with the guide on this site) ----------
+// A speaker switched off on an earlier visit counts no more: sound starts again at the first touch (same as the guide)
+try {
+  const s0 = JSON.parse(localStorage.getItem('guida-suoni-v2') || '{}');
+  if (s0.on === false && !sessionStorage.getItem('guida-muto')) { s0.on = true; localStorage.setItem('guida-suoni-v2', JSON.stringify(s0)); }
+} catch (_) {}
 const SND = {
   on: true, blocked: false, waiting: false, claimAt: 0, clock: null, bc: null, fixed: null,
   shared(patch) {
@@ -394,6 +399,8 @@ const SND = {
       this.fadeTo(0, true); clearInterval(a._fade); a.pause();
       if (this.bc) this.bc.postMessage({ type: 'off' });
     } else { this.on = true; this.shared({ on: true }); this.start(this.shared().time); }
+    // off holds for this visit only (as in the guide): the next visit starts with sound at the first touch
+    try { if (!this.on) sessionStorage.setItem('guida-muto', '1'); else sessionStorage.removeItem('guida-muto'); } catch (_) {}
     drawSound();
   },
   live() { const c = this.ctx(); if (!c || !this.musicOn()) return null; if (c.state !== 'running') { c.resume(); return null; } return c; },

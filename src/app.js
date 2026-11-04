@@ -685,7 +685,8 @@ Component.prototype.enter = function (screen, h) {
   comp = this;
   // without the camera inside the guide: the step screen, and Registra opens the Camera app sheet, as before
   if (screen && screen.type === 'rec' && !camUsable()) {
-    if (screen.ready) { _enter.call(this, { type: 'step', key: screen.key, i: screen.i }, h); saveState(); return; }
+    const from = this.cur(), fromStep = from.type === 'step' && from.key === screen.key && from.i === screen.i;
+    if (screen.ready && !fromStep) { _enter.call(this, { type: 'step', key: screen.key, i: screen.i }, h); saveState(); return; }
     OV.screen = { type: 'rec', key: screen.key, i: screen.i, guide: true }; drawRec(); return;
   }
   // a tap that starts a take: the moment the iPhone allows the motion sensors and the sound

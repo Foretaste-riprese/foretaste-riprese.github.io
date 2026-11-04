@@ -1325,7 +1325,8 @@ FLOW_METHODS = r"""  // ---- Navigation: one artboard holds the whole flow; hist
       v.step = { fp: fpOf(sc.key, st), view: fpOn ? 'v-fp' : 'v-plan', planOn: fpOn ? 'false' : 'true', fpOn: fpOn ? 'true' : 'false',
         showPlan: () => this.setState({ fpView: false }), showFp: () => this.setState({ fpView: true }),
         area, passo: `${sc.i + 1} / ${steps.length}`, n: steps.length, segs, actions, kicker, t1, t2, text: st.text, plan: planOf(sc.key, st), isTurn: st.kind === 'turn',
-        skip: () => this.nextStep(sc), rec: () => this.enter({ type: 'rec', key: sc.key, i: sc.i, guide: true }, this.hist()) };
+        // Registra opens the camera ready: the client gets into place, then the red button starts the take
+        skip: () => this.nextStep(sc), rec: () => this.enter({ type: 'rec', key: sc.key, i: sc.i, ready: true, guide: true }, this.hist()) };
     }
     if (sc.type === 'rec') {
       const steps = stepsOf(sc.key), st = steps[sc.i], ready = !!sc.ready, prev = ready && sc.prev != null ? steps[sc.prev] : null;

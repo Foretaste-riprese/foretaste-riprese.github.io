@@ -17,7 +17,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="it_IT">
 <meta name="twitter:card" content="summary_large_image">
-<script>window.GUIDA_BUILD = 'cde7070ddf';</script>
+<script>window.GUIDA_BUILD = '033552c887';</script>
 <script src="config.js?v=0c99e2d2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
@@ -1768,7 +1768,8 @@ class Component extends DCLogic {
       v.step = { fp: fpOf(sc.key, st), view: fpOn ? 'v-fp' : 'v-plan', planOn: fpOn ? 'false' : 'true', fpOn: fpOn ? 'true' : 'false',
         showPlan: () => this.setState({ fpView: false }), showFp: () => this.setState({ fpView: true }),
         area, passo: `${sc.i + 1} / ${steps.length}`, n: steps.length, segs, actions, kicker, t1, t2, text: st.text, plan: planOf(sc.key, st), isTurn: st.kind === 'turn',
-        skip: () => this.nextStep(sc), rec: () => this.enter({ type: 'rec', key: sc.key, i: sc.i, guide: true }, this.hist()) };
+        // Registra opens the camera ready: the client gets into place, then the red button starts the take
+        skip: () => this.nextStep(sc), rec: () => this.enter({ type: 'rec', key: sc.key, i: sc.i, ready: true, guide: true }, this.hist()) };
     }
     if (sc.type === 'rec') {
       const steps = stepsOf(sc.key), st = steps[sc.i], ready = !!sc.ready, prev = ready && sc.prev != null ? steps[sc.prev] : null;
@@ -2556,7 +2557,8 @@ Component.prototype.enter = function (screen, h) {
   comp = this;
   // without the camera inside the guide: the step screen, and Registra opens the Camera app sheet, as before
   if (screen && screen.type === 'rec' && !camUsable()) {
-    if (screen.ready) { _enter.call(this, { type: 'step', key: screen.key, i: screen.i }, h); saveState(); return; }
+    const from = this.cur(), fromStep = from.type === 'step' && from.key === screen.key && from.i === screen.i;
+    if (screen.ready && !fromStep) { _enter.call(this, { type: 'step', key: screen.key, i: screen.i }, h); saveState(); return; }
     OV.screen = { type: 'rec', key: screen.key, i: screen.i, guide: true }; drawRec(); return;
   }
   // a tap that starts a take: the moment the iPhone allows the motion sensors and the sound

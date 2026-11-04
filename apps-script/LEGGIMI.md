@@ -31,7 +31,7 @@ Per controllare che funzioni, apri quell'indirizzo nel browser: deve comparire `
 ## Cosa arriva nel Drive
 
 - Una sottocartella per ogni immobile, con il nome scritto nel link della guida (`?casa=Via Roma 12`) o dal cliente.
-- Ogni video con il nome del passo, per esempio `Ambiente Rettangolare · passo 03 di 10 · Punto 1.mov`, in qualità originale.
+- Le **foto** di ogni passo, in 4K, con il nome del passo, per esempio `Ambiente Rettangolare · passo 03 di 10 · Punto 1 · foto 07.jpg` (dove il telefono non può fare le foto, un video con lo stesso nome).
 - Il foglio **Feedback della guida**, con data, immobile, stelle e commento.
 - Il foglio **Questionario della prova**, con le risposte al questionario dopo la prova: una riga per persona, una colonna per domanda. La riga si aggiorna da sola mentre la persona risponde; quando ha finito, lo Stato diventa «Completato».
 - Le risposte date a voce nel questionario, come file audio nella cartella dell'immobile (es. `Questionario · Mario Rossi · domanda 05 · voce 1.m4a`); nel foglio, al posto della risposta, c'è il link per ascoltarle.
@@ -42,4 +42,4 @@ Dopo una modifica: **Esegui il deployment → Gestisci deployment → Modifica (
 
 ## Da sapere
 
-Chi conosce l'indirizzo dello script può mandare video nella cartella: è scritto nel codice della guida, quindi non è segreto. Lo script accetta solo video, ma se un giorno ricevi file che non c'entrano, crea un nuovo deployment (l'indirizzo cambia) e aggiorna `config.js`.
+Chi conosce l'indirizzo dello script può mandare video nella cartella: è scritto nel codice della guida, quindi non è segreto. Lo script accetta solo foto, video e audio, ma se un giorno ricevi file che non c'entrano, crea un nuovo deployment (l'indirizzo cambia) e aggiorna `config.js`.

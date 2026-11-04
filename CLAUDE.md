@@ -64,6 +64,8 @@ Poi, se serve, ripubblica il canvas con lo strumento Artifact: `url` del canvas,
 
 ## In sospeso
 
+- **Foto aperte come video nel Drive** (5/11): lo script accettava solo `video/*` e `audio/*` e dava a tutto il resto il tipo `video/mp4`, quindi le foto si potevano solo scaricare. Corretto in `apps-script/Code.gs` (accetta `image/jpeg` e simili): **il proprietario deve incollarlo e portare i deployment alla nuova versione**. Le foto arrivate prima restano «video» nel Drive (scaricate si aprono come JPG).
+
 0. **Questionario**: lo script del proprietario deve avere l'azione `questionario` (incollare tutto `apps-script/Code.gs`, rimettere l'ID cartella, portare i deployment alla nuova versione). Finché non lo fa, la pagina tiene le risposte sul telefono e riprova.
 
 1. **Segnalazioni automatiche**: la guida le manda già. Lo script nell'account del proprietario però non ha ancora l'azione `report`. Deve incollare tutto `apps-script/Code.gs` (rimettendo il suo ID cartella alla riga 11) e portare i deployment alla nuova versione. Finché non lo fa, le segnalazioni vengono ignorate senza danni.

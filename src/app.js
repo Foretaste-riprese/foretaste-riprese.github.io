@@ -749,6 +749,26 @@ Component.prototype.fadeTo = function (level, pause) {
   clearInterval(a._fade);
   if (!level && pause) a.pause();
 };
+// The speaker: it goes by what is really heard. The guide could believe the music was stopped while it played (the
+// iPhone refused it, then it started at a touch; another open guide took it over): then the first tap «turned it on»
+// and the music went on. Now a tap while the music plays always stops it, and with the speaker off the music is
+// stopped the moment anything starts it.
+const _toggleMusic = Component.prototype.toggleMusic;
+Component.prototype.toggleMusic = function () {
+  const a = this.player();
+  if (!a.paused) { this._on = true; this._blocked = false; }   // it plays: this tap turns it off
+  _toggleMusic.call(this);
+  if (!this._on) { clearInterval(a._fade); a.pause(); }
+};
+function guardMusic() {
+  const a = comp && comp.player();
+  if (!a || a._guarded) return;
+  a._guarded = true;
+  a.addEventListener('playing', () => {
+    if (!comp._on || comp.cur().type === 'rec') { a.pause(); return; }
+    if (comp._blocked) { comp._blocked = false; comp.forceUpdate(); }
+  });
+}
 // After the Camera app (or a call, or the lock screen) the iPhone suspends the page's sound and allows it back only
 // from a touch: the first touch on the guide brings music and effects back, if the speaker is on.
 function wakeSound() {
@@ -822,6 +842,7 @@ setInterval(checkUpdate, 3 * 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
 
 comp = DC.mount($('#board'), $('#dc-tpl'), Component, PROPS);
+guardMusic();
 meadow();
 const was = loadState();
 if (was && was.scr) {

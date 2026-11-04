@@ -376,13 +376,21 @@ const SND = {
     };
     EV.forEach((k) => document.addEventListener(k, wake, true));
   },
+  // It goes by what is really heard: a tap while the music plays always stops it (the page could believe it was
+  // stopped while it played, and the tap «turned it on»); with the speaker off, the music stops as soon as it starts.
   toggle() {
     const c = this.ctx();
     if (c && c.state !== 'running') c.resume();
+    const a = this.player();
+    if (!a._guarded) {
+      a._guarded = true;
+      a.addEventListener('playing', () => { if (!this.on) a.pause(); else if (this.blocked) { this.blocked = false; drawSound(); } });
+    }
+    if (!a.paused) { this.on = true; this.blocked = false; }
     if (this.musicOn()) {
       this.on = false; clearInterval(this.clock);
       this.shared({ on: false, time: this.player().currentTime });
-      this.fadeTo(0, true);
+      this.fadeTo(0, true); clearInterval(a._fade); a.pause();
       if (this.bc) this.bc.postMessage({ type: 'off' });
     } else { this.on = true; this.shared({ on: true }); this.start(this.shared().time); }
     drawSound();

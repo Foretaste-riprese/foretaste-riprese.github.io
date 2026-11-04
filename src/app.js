@@ -256,14 +256,14 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#ov'
 // The phone's own camera, opened by the page: the 0.5× lens in 4K at 30 fps, kept on from one step to the next, so
 // each step is just: go to the point, press the red button, film, press stop. No app to switch to, no gallery,
 // no waiting: the take goes straight into the sending queue. The camera is on only on the recording screen.
-const CAM = { stream: null, opening: null, video: null, rec: null, chunks: [], t0: 0, tick: null, sc: null, failed: '', errors: 0 };
+const CAM = { stream: null, opening: null, video: null, rec: null, t0: 0, tick: null, sc: null, failed: '', errors: 0 };
 const BITRATE = 30e6;   // 30 Mbit/s: close to the Camera app in 4K, and a minute of video is about 225 MB
 const MIME = (() => {
   if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
   return ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
 })();
 const camUsable = () => !CAM.failed && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
-const camWanted = () => !!comp && !document.hidden && comp.cur().type === 'rec';
+const camWanted = () => !!comp && !document.hidden && (comp.cur().type === 'rec' || (comp.cur().type === 'step' && CAM.granted));
 function camFail(e, where) {
   const n = (e && e.name) || '';
   // refused, or no camera: the guide goes back to the Camera app for the rest of the visit
@@ -299,7 +299,7 @@ function camOpen() {
   if (!CAM.opening) CAM.opening = camStream().then((s) => {
     CAM.opening = null;
     if (!camWanted()) { s.getTracks().forEach((t) => t.stop()); return null; }   // the client left meanwhile
-    CAM.stream = s; CAM.errors = 0; awake();
+    CAM.stream = s; CAM.errors = 0; CAM.granted = true; awake();
     // the phone takes the camera away (a call, Control Center, another app): stop cleanly, ready to film again
     s.getVideoTracks()[0].addEventListener('ended', () => { if (CAM.stream === s) { camLost('La fotocamera si è fermata: tocca il tasto rosso per riprendere.'); } });
     camShow();
@@ -336,8 +336,10 @@ function recStart(sc) {
   let r;
   try { r = new MediaRecorder(CAM.stream, Object.assign({ videoBitsPerSecond: BITRATE }, MIME ? { mimeType: MIME } : {})); }
   catch (e) { camFail(e, 'registrazione'); CAM.failed = CAM.failed || 'MediaRecorder'; camClose(); toCameraApp(sc); return; }
-  CAM.rec = r; CAM.sc = sc; CAM.chunks = [];
-  r.ondataavailable = (e) => { if (e.data && e.data.size) CAM.chunks.push(e.data); };
+  const chunks = [];   // this take's own pieces: the previous take may still be handing over its last ones
+  CAM.rec = r; CAM.sc = sc; r.chunks = chunks;
+  turnBegin(sc);
+  r.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
   r.onerror = (e) => report('Registrazione interrotta', String((e.error && (e.error.name || e.error.message)) || e));
   r.start(1000);
   CAM.t0 = Date.now();
@@ -350,8 +352,9 @@ function recStop(keep) {
   const r = CAM.rec, sc = CAM.sc, ms = Date.now() - CAM.t0;
   if (!r) return;
   CAM.rec = null; CAM.sc = null; clearInterval(CAM.tick);
+  turnEnd();
   r.onstop = () => {
-    const chunks = CAM.chunks; CAM.chunks = [];
+    const chunks = r.chunks; r.chunks = null;
     if (!keep) return;
     const type = (r.mimeType || MIME || 'video/mp4').split(';')[0], ext = /webm/.test(type) ? '.webm' : '.mp4';
     const blob = new Blob(chunks, { type });
@@ -392,18 +395,125 @@ function camSync() {
   });
 }
 
+// ---------- how far the client has turned: the motion sensors ----------
+// The gyroscope says how fast the phone turns; turning around the up-down axis (measured against gravity, so it works
+// however the phone is tilted) adds up to the degrees turned. The ring on the trail shows it, and when the turn is
+// complete the take stops by itself. Without the sensors: the arrow alone, and a sound when it reaches the end.
+const MOT = { asked: false, ok: false, on: false, yaw: 0, last: 0, seen: 0, g: null, arc: 0, done: false, check: null, endT: null };
+function motionAsk() {   // called inside a tap: the iPhone asks only then
+  if (MOT.asked) return;
+  MOT.asked = true;
+  const D = window.DeviceMotionEvent;
+  if (!D) return;
+  const on = () => { MOT.ok = true; window.addEventListener('devicemotion', onMotion); };
+  if (typeof D.requestPermission === 'function') D.requestPermission().then((r) => { if (r === 'granted') on(); }, () => {});
+  else on();
+}
+function onMotion(e) {
+  const now = performance.now();
+  const g = e.accelerationIncludingGravity;
+  if (g && g.x != null) MOT.g = [g.x, g.y, g.z];
+  const r = e.rotationRate;
+  if (!r || r.alpha == null) return;
+  MOT.seen = now;
+  if (!MOT.on) { MOT.last = now; return; }
+  const dt = MOT.last ? Math.min(0.1, (now - MOT.last) / 1000) : 0;
+  MOT.last = now;
+  let rate = r.gamma || 0;
+  if (MOT.g) { const [x, y, z] = MOT.g, n = Math.hypot(x, y, z) || 1; rate = ((r.beta || 0) * x + (r.gamma || 0) * y + (r.alpha || 0) * z) / n; }
+  MOT.yaw += rate * dt;
+  turnTick();
+}
+function turnBegin(sc) {
+  turnEnd();
+  const st = stepsOf(sc.key)[sc.i];
+  if (st.kind !== 'turn') return;
+  Object.assign(MOT, { on: true, yaw: 0, last: 0, arc: st.arc.gradi, done: false });
+  document.body.style.setProperty('--you', '0%');
+  // no movement data within a second: no sensors here, the arrow alone guides and a sound marks the end of the turn
+  MOT.check = setTimeout(() => {
+    if (performance.now() - MOT.seen < 1000) { document.body.classList.add('gyro'); return; }
+    MOT.endT = setTimeout(() => { chime(); say('Fatto. Tocca stop.'); }, st.arc.gradi / 15 * 1000 + 600);
+  }, 1000);
+}
+function turnTick() {
+  if (!MOT.arc || MOT.done) return;
+  const p = Math.min(1, Math.abs(MOT.yaw) / MOT.arc);
+  document.body.style.setProperty('--you', (p * 100).toFixed(1) + '%');
+  // the whole turn (a few degrees of grace): this take is done, the next step comes up
+  if (Math.abs(MOT.yaw) >= MOT.arc - 4 && Date.now() - CAM.t0 > 1500 && CAM.rec) {
+    MOT.done = true;
+    chime();
+    const sc = comp.cur();
+    setTimeout(() => { if (CAM.rec && comp.cur() === sc) comp.afterRec(sc, true); }, 350);
+  }
+}
+function turnEnd() {
+  MOT.on = false; MOT.arc = 0;
+  clearTimeout(MOT.check); clearTimeout(MOT.endT);
+  document.body.classList.remove('gyro');
+}
+
+// ---------- the voice and the sounds while filming (the microphone is off: they don't end up in the video) ----------
+let AC = null;
+function audioUnlock() {   // inside a tap
+  try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state !== 'running') AC.resume(); } catch (_) {}
+  try { if (window.speechSynthesis && !audioUnlock.done) { audioUnlock.done = true; const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } } catch (_) {}
+}
+// two soft notes, rising: done
+function chime() {
+  try {
+    if (!AC) return;
+    const t = AC.currentTime + 0.01;
+    [[1046.5, 0], [1568, 0.12]].forEach(([f, d]) => {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(0.25, t + d + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.5);
+      o.connect(g).connect(AC.destination); o.start(t + d); o.stop(t + d + 0.55);
+    });
+  } catch (_) {}
+}
+let VOICE = null;
+function say(t) {
+  try {
+    const S = window.speechSynthesis;
+    if (!S || !t) return;
+    if (!VOICE) VOICE = S.getVoices().filter((v) => /^it/i.test(v.lang)).sort((a, b) => (b.localService - a.localService))[0] || null;
+    S.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = 'it-IT'; if (VOICE) u.voice = VOICE; u.rate = 1.02;
+    S.speak(u);
+  } catch (_) {}
+}
+// what the voice says: the step's own words, with the red button instead of «Registra»
+function sayFor(sc) {
+  if (!sc) return;
+  if (sc.type === 'space' && sc.fatto) return say('Spazio finito. Scegli il prossimo.');
+  if (sc.type !== 'rec') return;
+  const st = stepsOf(sc.key)[sc.i];
+  if (sc.ready) say((sc.note ? sc.note + ' ' : '') + st.text.replace(/[()]/g, '').replace(/\bpremi Registra\b/g, 'tocca il tasto rosso').replace(/\bPremi Registra\b/g, 'Tocca il tasto rosso'));
+  else say(st.kind === 'turn' ? 'Segui la freccia.' : 'Segui la freccia, piano. Tocca stop quando arrivi.');
+}
+
 // ---------- hooks into the guide ----------
 const _enter = Component.prototype.enter;
 Component.prototype.enter = function (screen, h) {
   comp = this;
-  // without the camera inside the guide, Registra opens the Camera app sheet, as before
-  if (screen && screen.type === 'rec' && !camUsable()) { OV.screen = { type: 'rec', key: screen.key, i: screen.i, guide: true }; drawRec(); return; }
+  // without the camera inside the guide: the step screen, and Registra opens the Camera app sheet, as before
+  if (screen && screen.type === 'rec' && !camUsable()) {
+    if (screen.ready) { _enter.call(this, { type: 'step', key: screen.key, i: screen.i }, h); saveState(); return; }
+    OV.screen = { type: 'rec', key: screen.key, i: screen.i, guide: true }; drawRec(); return;
+  }
+  // a tap that starts a take: the moment the iPhone allows the motion sensors and the sound
+  if (screen && screen.type === 'rec' && !screen.ready) { motionAsk(); audioUnlock(); }
   if (screen && screen.type === 'end') { drawEnd(); return; }
   const was = this.cur();
   // leaving a take any way but Stop (never happens from the buttons): it is not kept
   if (CAM.rec && !(screen && screen.type === 'rec' && !screen.ready && screen.key === was.key && screen.i === was.i)) recCancel();
   _enter.call(this, screen, h);
   saveState();
+  if (!(screen && screen.type === 'rec' && !screen.ready) && window.speechSynthesis) speechSynthesis.cancel();
+  sayFor(screen);
   queueMicrotask(() => requestAnimationFrame(camSync));
 };
 const _go = Component.prototype.go;
@@ -422,10 +532,11 @@ Component.prototype.afterRec = function (sc, recorded) {
   }
   return _afterRec.call(this, sc, recorded);
 };
-// The permission screen: the phone asks for camera and microphone once, here, before the first space.
+// The permission screen: the phone asks for the camera (and, on the iPhone, the motion sensors) once, here.
 const _allow = Component.prototype.allowCamera;
 Component.prototype.allowCamera = function () {
   const go = () => _allow.call(this);
+  motionAsk(); audioUnlock();
   if (!camUsable()) return go();
   camStream().then((s) => { s.getTracks().forEach((t) => t.stop()); go(); }, (e) => { camFail(e, 'permesso'); go(); });
 };

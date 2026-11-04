@@ -17,7 +17,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="it_IT">
 <meta name="twitter:card" content="summary_large_image">
-<script>window.GUIDA_BUILD = '0adc5c33f2';</script>
+<script>window.GUIDA_BUILD = 'bfed14611d';</script>
 <script src="config.js?v=0c99e2d2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
@@ -101,6 +101,8 @@ body { background: var(--ground); color: var(--ink); overflow-x: hidden; }
 /* the camera inside the guide: its live picture fills the recording screen, under the guide's glass */
 #board .rec-screen > video.cam-live { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; pointer-events: none; }
 .cam-on #board .rec-screen > .cam-ph { display: none; }
+/* the motion sensors answer: the ring on the trail shows where the phone really is */
+body.gyro #board .trail-you { display: block; }
 /* no sensors for the level yet: no level */
 #board .rec-screen.avv-none .level { display: none; }
 /* the guide's own styles (from the canvas) */
@@ -210,6 +212,16 @@ button.btn-p{border:0;cursor:pointer}
 .ph{margin-top:12px;min-height:84px;border-radius:18px;border-style:dashed;display:grid;place-items:center;align-content:center;gap:4px;text-align:center;padding:10px}
 .stop{position:absolute;left:50%;margin-left:-42px;bottom:40px;width:84px;height:84px;border-radius:50%;border:2px solid #F3EBDD;background:transparent;display:grid;place-items:center;cursor:pointer;transition:transform .25s cubic-bezier(.3,.7,.2,1)}
 .stop:active{transform:scale(.94)}
+/* Follow the arrow */
+.trail{position:absolute;left:50%;top:0;width:390px;height:200px;margin-left:-195px}
+.trail-arrow,.trail-you{position:absolute;left:0;top:0;offset-rotate:auto;offset-distance:0%;border-radius:50%}
+.trail-arrow{width:46px;height:46px;background:#D9C29A;box-shadow:0 0 0 6px rgba(217,194,154,.28),0 8px 24px -6px rgba(8,6,3,.7);display:grid;place-items:center}
+.anim .trail-arrow{animation:trail-go var(--rdur,6s) linear both}
+.anim .trail.walk .trail-arrow{animation-duration:var(--wdur,4s)}
+@keyframes trail-go{0%,6%{offset-distance:0%}90%,100%{offset-distance:100%}}
+.trail-you{display:none;width:62px;height:62px;border:2.5px solid #F3EBDD;box-sizing:border-box;offset-distance:var(--you,0%);box-shadow:0 0 0 1px rgba(10,8,4,.3),inset 0 0 0 1px rgba(10,8,4,.3)}
+.trail-lab{position:absolute;left:0;right:0;top:206px;margin:0;text-align:center;font-size:24px;font-style:italic;color:#E6D3B0;text-shadow:0 1px 3px rgba(10,8,4,.6),0 2px 16px rgba(10,8,4,.6)}
+@media (prefers-reduced-motion: reduce){.anim .trail-arrow{animation:none;offset-distance:100%}}
 /* Ready to record: the camera's own red button, with the plan on one side and skipping on the other. */
 .recb{position:absolute;left:50%;margin-left:-42px;bottom:40px;width:84px;height:84px;border-radius:50%;border:3px solid #F3EBDD;background:transparent;display:grid;place-items:center;cursor:pointer;padding:0;transition:transform .25s cubic-bezier(.3,.7,.2,1)}
 .recb span{width:66px;height:66px;border-radius:50%;background:#E0583F}
@@ -432,11 +444,15 @@ button.btn-p{border:0;cursor:pointer}
                 <span class="irow-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"></path><circle cx="12" cy="13.5" r="3.5"></circle></svg></span>
                 <span style="display: flex; flex-direction: column; gap: 4px"><span class="irow-t">Fotocamera</span><span class="irow-p">Per riprendere gli spazi con la lente 0,5×. Solo le immagini: il microfono resta spento.</span></span>
               </div>
+              <div class="irow">
+                <span class="irow-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0 1 13-5.1M19.5 12a7.5 7.5 0 0 1-13 5.1"></path><path d="M17.5 3.5v3.5H14M6.5 20.5V17H10"></path></svg></span>
+                <span style="display: flex; flex-direction: column; gap: 4px"><span class="irow-t">Movimento</span><span class="irow-p">Per sapere quanto hai girato: ogni ripresa si ferma da sola.</span></span>
+              </div>
             </div>
           </section>
         </div>
         <div class="posa" style="--d: 650ms; margin-top: 16px">
-          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #F3EBDD; max-width: 34ch">Il telefono mostrerà la sua richiesta: tocca «Consenti».</p>
+          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #F3EBDD; max-width: 34ch">Il telefono può chiederti uno o due permessi: tocca sempre «Consenti».</p>
         </div>
         <nav style="margin-top: auto; display: flex; gap: 10px">
           <div class="posa" style="--d: 710ms; flex: 1; display: flex">
@@ -456,7 +472,7 @@ button.btn-p{border:0;cursor:pointer}
     <sc-if value="{{ isSpace }}" hint-placeholder-val="{{ false }}">
       <main style="flex: 1; display: flex; flex-direction: column; min-height: 0">
       <div class="posa" style="--d: 100ms; margin-top: 28px">
-        <div style="display: flex; justify-content: space-between; align-items: baseline"><span class="lab" style="color: #D9C29A">Scegli lo spazio</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><span class="lab" style="color: #D9C29A">{{ space.crumb }}</span></div>
       </div>
       <h1 class="dsp" style="margin: 10px 0 0; font-size: 40px; line-height: 1.04; letter-spacing: -.012em">
         <span class="posa" style="--d: 200ms"><span data-suono="1" style="display: block">Cosa riprendi</span></span>
@@ -878,29 +894,18 @@ button.btn-p{border:0;cursor:pointer}
           <span class="lv" style="position: absolute; left: 22px; width: 64px; height: 2px"></span>
           <span class="lv" style="position: absolute; right: 22px; width: 64px; height: 2px"></span>
         </div>
-        <sc-if value="{{ rec.isTurn }}" hint-placeholder-val="{{ true }}">
-          <div style="position: relative; width: 200px; height: 200px" role="img" aria-label="{{ rec.turnLabel }}">
-            <svg viewBox="-100 -100 200 200" width="200" height="200" aria-hidden="true" style="position: absolute; inset: 0">
-              <circle r="88" fill="rgba(18,15,9,.18)" stroke="rgba(243,235,221,.25)" stroke-width="2"></circle>
-              <g transform="rotate(-90)"><circle class="dial-prog" r="88" fill="none" stroke="#D9C29A" stroke-width="4" stroke-linecap="round" style="--end: {{ rec.dashEnd }}; --rdur: {{ rec.rdur }}"></circle></g>
-              <g class="dial-mark" style="--deg: {{ rec.deg }}; --rdur: {{ rec.rdur }}"><circle cx="0" cy="-88" r="7" fill="#F3EBDD"></circle></g>
-            </svg>
-            <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; text-shadow: 0 1px 10px rgba(10,8,4,.5)">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#E6D3B0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a7 7 0 1 1 7 7"></path><path d="M3 9.5L5 13l3.5-2"></path></svg>
-              <span class="lab" style="font-size: 9px">Gira a destra</span>
-              <span class="dsp" style="font-size: 24px; font-style: italic; color: #E6D3B0">{{ rec.turnWords }}</span>
-            </div>
-          </div>
-        </sc-if>
-        <sc-if value="{{ rec.isWalk }}" hint-placeholder-val="{{ false }}">
-          <div style="position: relative; width: 200px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-shadow: 0 1px 10px rgba(10,8,4,.5)" role="img" aria-label="Cammina in avanti, piano">
-            <svg width="44" height="70" viewBox="0 0 44 70" fill="none" stroke="#E6D3B0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path class="chev c3" d="M8 26l14-12 14 12"></path><path class="chev c2" d="M8 42l14-12 14 12"></path><path class="chev c1" d="M8 58l14-12 14 12"></path>
-            </svg>
-            <span class="dsp" style="font-size: 24px; font-style: italic; color: #E6D3B0">Avanti, piano</span>
-            <span aria-hidden="true" style="width: 150px; height: 3px; border-radius: 2px; background: rgba(243,235,221,.25); overflow: hidden"><span class="walk-bar" style="display: block; height: 100%; background: #D9C29A; --wdur: {{ rec.wdur }}"></span></span>
-          </div>
-        </sc-if>
+        <!-- Follow the arrow: the dashed trail is the whole move, the arrow travels it at the right pace (a slow turn, a slow
+             walk). In the guide, the ring is where the phone really is (motion sensors): keep it on the arrow. -->
+        <div class="trail {{ rec.trailKind }}" role="img" aria-label="{{ rec.trailText }}" style="--rdur: {{ rec.rdur }}; --wdur: {{ rec.wdur }}">
+          <svg viewBox="0 0 390 200" width="390" height="200" aria-hidden="true" style="position: absolute; inset: 0; overflow: visible">
+            <path d="{{ rec.trailPath }}" fill="none" stroke="rgba(10,8,4,.35)" stroke-width="7" stroke-linecap="round" stroke-dasharray="12 13"></path>
+            <path d="{{ rec.trailPath }}" fill="none" stroke="#F3EBDD" stroke-width="4" stroke-linecap="round" stroke-dasharray="12 13"></path>
+            <path d="{{ rec.trailEnd }}" fill="none" stroke="#D9C29A" stroke-width="3"></path>
+          </svg>
+          <span class="trail-you" style="offset-path: path('{{ rec.trailPath }}')"></span>
+          <span class="trail-arrow" style="offset-path: path('{{ rec.trailPath }}')"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#17130C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5"></path></svg></span>
+        </div>
+        <p class="dsp trail-lab">{{ rec.trailText }}</p>
       </div>
       <div aria-live="polite" style="position: absolute; left: 0; right: 0; bottom: 210px; height: 44px; display: grid; place-items: center; pointer-events: none">
         <span class="chip chip-ok gl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Velocità giusta</span>
@@ -1673,14 +1678,14 @@ class Component extends DCLogic {
   nextStep(sc) {
     const n = stepsOf(sc.key).length;
     if (sc.i + 1 < n) this.go({ type: 'step', key: sc.key, i: sc.i + 1 });
-    else this.go({ type: 'done', key: sc.key });
+    else this.enter({ type: 'space', fatto: sc.key }, []);
   }
   // After a take (or a skipped point) the camera stays on and shows the next step, ready: one tap to record it.
   // The history stays the one of the step screens, so Pianta and Indietro work as before.
   afterRec(sc, recorded) {
     const n = stepsOf(sc.key).length, h = this.hist().concat([{ type: 'step', key: sc.key, i: sc.i }]);
     if (sc.i + 1 < n) this.enter({ type: 'rec', key: sc.key, i: sc.i + 1, ready: true, guide: true, prev: recorded ? sc.i : null }, h);
-    else this.enter({ type: 'done', key: sc.key }, h);
+    else this.enter({ type: 'space', fatto: sc.key }, []);   // the space is done: straight to the next one
   }
   // The permission screen: in the canvas it only moves on; the guide asks the phone for camera and microphone here.
   allowCamera() { this.go({ type: 'space' }); }
@@ -1718,8 +1723,9 @@ class Component extends DCLogic {
       snd: this.glass('snd'), fig: this.glass('fig'), back: this.glass('back'), fb: this.feedbackVals(),
       setup: { items: [], segs: [] }, perm: {}, pick: { tiles: [], go: {} }, step: { plan: BLANK, fp: {}, segs: [], actions: [] }, rec: { plan: BLANK },
       space: {
-        ambiente: () => this.go({ type: 'pick', group: 'rooms' }), corridoio: () => this.go({ type: 'step', key: 'corridoio', i: 0 }),
-        scala: () => this.go({ type: 'pick', group: 'stairs' }), finish: () => this.go({ type: 'end' })
+        ambiente: () => this.go({ type: 'pick', group: 'rooms' }), corridoio: () => this.go({ type: 'rec', key: 'corridoio', i: 0, ready: true, guide: true }),
+        scala: () => this.go({ type: 'pick', group: 'stairs' }), finish: () => this.go({ type: 'end' }),
+        crumb: sc.fatto ? 'Spazio finito · scegli il prossimo' : 'Scegli lo spazio'
       },
       done: { another: () => this.enter({ type: 'space' }, []), finish: () => this.go({ type: 'end' }) },
       end: { restart: () => this.enter({ type: 'setup', i: 0 }, []) }
@@ -1739,10 +1745,10 @@ class Component extends DCLogic {
       const rooms = sc.group === 'rooms', keys = rooms ? ROOMS : STAIRS;
       const go = {};
       // Holes can't read a hyphen, so 'scala-dritta' is reached as go.scala_dritta.
-      ROOMS.concat(STAIRS).forEach((k) => { go[k.replace('-', '_')] = () => this.go({ type: 'step', key: k, i: 0 }); });
+      ROOMS.concat(STAIRS).forEach((k) => { go[k.replace('-', '_')] = () => this.go({ type: 'rec', key: k, i: 0, ready: true, guide: true }); });
       v.pick = { rooms, stairs: !rooms, go, crumb: rooms ? 'Ambiente' : 'Scalinata', t1: rooms ? 'Che forma' : 'Che scala', t2: rooms ? 'ha?' : 'è?',
         tiles: keys.map((k, i) => ({ name: SHAPES[k].name, plan: planOf(k), d: (450 + i * 60) + 'ms', s: i === 0 ? '3' : '',
-          pick: () => this.go({ type: 'step', key: k, i: 0 }) })) };
+          pick: () => this.go({ type: 'rec', key: k, i: 0, ready: true, guide: true }) })) };
     }
     if (sc.type === 'step') {
       const steps = stepsOf(sc.key), st = steps[sc.i], [t1, t2] = splitTitle(st.title);
@@ -1767,6 +1773,10 @@ class Component extends DCLogic {
         avv: AVV[this.props.avviso] || 'auto',
         text: ready ? st.text : st.title + ': ' + (st.kind === 'turn' ? `gira verso destra, ${turnWords(st.arc.gradi)}.` : 'cammina piano seguendo la freccia.'),
         passo: `Passo ${sc.i + 1} di ${steps.length}`,
+        trailKind: turn ? 'turn' : 'walk',
+        trailPath: turn ? 'M40,135 Q195,35 350,135' : 'M195,196 L195,8',
+        trailEnd: turn ? 'M350,124 a11,11 0 1,0 0.01,0 Z' : 'M195,-3 a11,11 0 1,0 0.01,0 Z',
+        trailText: turn ? 'Segui la freccia · ' + turnWords(st.arc.gradi) : 'Segui la freccia, piano',
         ready, live: !ready, mode: ready ? 'is-ready' : 'is-live', clock: (this.state && this.state.clock) || '0:00',
         hasNote: ready && !!sc.note, note: sc.note || '', canSkip: ready && turn,
         hasRedo: !!prev, redoLabel: prev ? 'Rifai «' + prev.title + '»' : '',
@@ -2112,14 +2122,14 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#ov'
 // The phone's own camera, opened by the page: the 0.5× lens in 4K at 30 fps, kept on from one step to the next, so
 // each step is just: go to the point, press the red button, film, press stop. No app to switch to, no gallery,
 // no waiting: the take goes straight into the sending queue. The camera is on only on the recording screen.
-const CAM = { stream: null, opening: null, video: null, rec: null, chunks: [], t0: 0, tick: null, sc: null, failed: '', errors: 0 };
+const CAM = { stream: null, opening: null, video: null, rec: null, t0: 0, tick: null, sc: null, failed: '', errors: 0 };
 const BITRATE = 30e6;   // 30 Mbit/s: close to the Camera app in 4K, and a minute of video is about 225 MB
 const MIME = (() => {
   if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
   return ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
 })();
 const camUsable = () => !CAM.failed && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
-const camWanted = () => !!comp && !document.hidden && comp.cur().type === 'rec';
+const camWanted = () => !!comp && !document.hidden && (comp.cur().type === 'rec' || (comp.cur().type === 'step' && CAM.granted));
 function camFail(e, where) {
   const n = (e && e.name) || '';
   // refused, or no camera: the guide goes back to the Camera app for the rest of the visit
@@ -2155,7 +2165,7 @@ function camOpen() {
   if (!CAM.opening) CAM.opening = camStream().then((s) => {
     CAM.opening = null;
     if (!camWanted()) { s.getTracks().forEach((t) => t.stop()); return null; }   // the client left meanwhile
-    CAM.stream = s; CAM.errors = 0; awake();
+    CAM.stream = s; CAM.errors = 0; CAM.granted = true; awake();
     // the phone takes the camera away (a call, Control Center, another app): stop cleanly, ready to film again
     s.getVideoTracks()[0].addEventListener('ended', () => { if (CAM.stream === s) { camLost('La fotocamera si è fermata: tocca il tasto rosso per riprendere.'); } });
     camShow();
@@ -2192,8 +2202,10 @@ function recStart(sc) {
   let r;
   try { r = new MediaRecorder(CAM.stream, Object.assign({ videoBitsPerSecond: BITRATE }, MIME ? { mimeType: MIME } : {})); }
   catch (e) { camFail(e, 'registrazione'); CAM.failed = CAM.failed || 'MediaRecorder'; camClose(); toCameraApp(sc); return; }
-  CAM.rec = r; CAM.sc = sc; CAM.chunks = [];
-  r.ondataavailable = (e) => { if (e.data && e.data.size) CAM.chunks.push(e.data); };
+  const chunks = [];   // this take's own pieces: the previous take may still be handing over its last ones
+  CAM.rec = r; CAM.sc = sc; r.chunks = chunks;
+  turnBegin(sc);
+  r.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
   r.onerror = (e) => report('Registrazione interrotta', String((e.error && (e.error.name || e.error.message)) || e));
   r.start(1000);
   CAM.t0 = Date.now();
@@ -2206,8 +2218,9 @@ function recStop(keep) {
   const r = CAM.rec, sc = CAM.sc, ms = Date.now() - CAM.t0;
   if (!r) return;
   CAM.rec = null; CAM.sc = null; clearInterval(CAM.tick);
+  turnEnd();
   r.onstop = () => {
-    const chunks = CAM.chunks; CAM.chunks = [];
+    const chunks = r.chunks; r.chunks = null;
     if (!keep) return;
     const type = (r.mimeType || MIME || 'video/mp4').split(';')[0], ext = /webm/.test(type) ? '.webm' : '.mp4';
     const blob = new Blob(chunks, { type });
@@ -2248,18 +2261,125 @@ function camSync() {
   });
 }
 
+// ---------- how far the client has turned: the motion sensors ----------
+// The gyroscope says how fast the phone turns; turning around the up-down axis (measured against gravity, so it works
+// however the phone is tilted) adds up to the degrees turned. The ring on the trail shows it, and when the turn is
+// complete the take stops by itself. Without the sensors: the arrow alone, and a sound when it reaches the end.
+const MOT = { asked: false, ok: false, on: false, yaw: 0, last: 0, seen: 0, g: null, arc: 0, done: false, check: null, endT: null };
+function motionAsk() {   // called inside a tap: the iPhone asks only then
+  if (MOT.asked) return;
+  MOT.asked = true;
+  const D = window.DeviceMotionEvent;
+  if (!D) return;
+  const on = () => { MOT.ok = true; window.addEventListener('devicemotion', onMotion); };
+  if (typeof D.requestPermission === 'function') D.requestPermission().then((r) => { if (r === 'granted') on(); }, () => {});
+  else on();
+}
+function onMotion(e) {
+  const now = performance.now();
+  const g = e.accelerationIncludingGravity;
+  if (g && g.x != null) MOT.g = [g.x, g.y, g.z];
+  const r = e.rotationRate;
+  if (!r || r.alpha == null) return;
+  MOT.seen = now;
+  if (!MOT.on) { MOT.last = now; return; }
+  const dt = MOT.last ? Math.min(0.1, (now - MOT.last) / 1000) : 0;
+  MOT.last = now;
+  let rate = r.gamma || 0;
+  if (MOT.g) { const [x, y, z] = MOT.g, n = Math.hypot(x, y, z) || 1; rate = ((r.beta || 0) * x + (r.gamma || 0) * y + (r.alpha || 0) * z) / n; }
+  MOT.yaw += rate * dt;
+  turnTick();
+}
+function turnBegin(sc) {
+  turnEnd();
+  const st = stepsOf(sc.key)[sc.i];
+  if (st.kind !== 'turn') return;
+  Object.assign(MOT, { on: true, yaw: 0, last: 0, arc: st.arc.gradi, done: false });
+  document.body.style.setProperty('--you', '0%');
+  // no movement data within a second: no sensors here, the arrow alone guides and a sound marks the end of the turn
+  MOT.check = setTimeout(() => {
+    if (performance.now() - MOT.seen < 1000) { document.body.classList.add('gyro'); return; }
+    MOT.endT = setTimeout(() => { chime(); say('Fatto. Tocca stop.'); }, st.arc.gradi / 15 * 1000 + 600);
+  }, 1000);
+}
+function turnTick() {
+  if (!MOT.arc || MOT.done) return;
+  const p = Math.min(1, Math.abs(MOT.yaw) / MOT.arc);
+  document.body.style.setProperty('--you', (p * 100).toFixed(1) + '%');
+  // the whole turn (a few degrees of grace): this take is done, the next step comes up
+  if (Math.abs(MOT.yaw) >= MOT.arc - 4 && Date.now() - CAM.t0 > 1500 && CAM.rec) {
+    MOT.done = true;
+    chime();
+    const sc = comp.cur();
+    setTimeout(() => { if (CAM.rec && comp.cur() === sc) comp.afterRec(sc, true); }, 350);
+  }
+}
+function turnEnd() {
+  MOT.on = false; MOT.arc = 0;
+  clearTimeout(MOT.check); clearTimeout(MOT.endT);
+  document.body.classList.remove('gyro');
+}
+
+// ---------- the voice and the sounds while filming (the microphone is off: they don't end up in the video) ----------
+let AC = null;
+function audioUnlock() {   // inside a tap
+  try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state !== 'running') AC.resume(); } catch (_) {}
+  try { if (window.speechSynthesis && !audioUnlock.done) { audioUnlock.done = true; const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } } catch (_) {}
+}
+// two soft notes, rising: done
+function chime() {
+  try {
+    if (!AC) return;
+    const t = AC.currentTime + 0.01;
+    [[1046.5, 0], [1568, 0.12]].forEach(([f, d]) => {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(0.25, t + d + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.5);
+      o.connect(g).connect(AC.destination); o.start(t + d); o.stop(t + d + 0.55);
+    });
+  } catch (_) {}
+}
+let VOICE = null;
+function say(t) {
+  try {
+    const S = window.speechSynthesis;
+    if (!S || !t) return;
+    if (!VOICE) VOICE = S.getVoices().filter((v) => /^it/i.test(v.lang)).sort((a, b) => (b.localService - a.localService))[0] || null;
+    S.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = 'it-IT'; if (VOICE) u.voice = VOICE; u.rate = 1.02;
+    S.speak(u);
+  } catch (_) {}
+}
+// what the voice says: the step's own words, with the red button instead of «Registra»
+function sayFor(sc) {
+  if (!sc) return;
+  if (sc.type === 'space' && sc.fatto) return say('Spazio finito. Scegli il prossimo.');
+  if (sc.type !== 'rec') return;
+  const st = stepsOf(sc.key)[sc.i];
+  if (sc.ready) say((sc.note ? sc.note + ' ' : '') + st.text.replace(/[()]/g, '').replace(/\bpremi Registra\b/g, 'tocca il tasto rosso').replace(/\bPremi Registra\b/g, 'Tocca il tasto rosso'));
+  else say(st.kind === 'turn' ? 'Segui la freccia.' : 'Segui la freccia, piano. Tocca stop quando arrivi.');
+}
+
 // ---------- hooks into the guide ----------
 const _enter = Component.prototype.enter;
 Component.prototype.enter = function (screen, h) {
   comp = this;
-  // without the camera inside the guide, Registra opens the Camera app sheet, as before
-  if (screen && screen.type === 'rec' && !camUsable()) { OV.screen = { type: 'rec', key: screen.key, i: screen.i, guide: true }; drawRec(); return; }
+  // without the camera inside the guide: the step screen, and Registra opens the Camera app sheet, as before
+  if (screen && screen.type === 'rec' && !camUsable()) {
+    if (screen.ready) { _enter.call(this, { type: 'step', key: screen.key, i: screen.i }, h); saveState(); return; }
+    OV.screen = { type: 'rec', key: screen.key, i: screen.i, guide: true }; drawRec(); return;
+  }
+  // a tap that starts a take: the moment the iPhone allows the motion sensors and the sound
+  if (screen && screen.type === 'rec' && !screen.ready) { motionAsk(); audioUnlock(); }
   if (screen && screen.type === 'end') { drawEnd(); return; }
   const was = this.cur();
   // leaving a take any way but Stop (never happens from the buttons): it is not kept
   if (CAM.rec && !(screen && screen.type === 'rec' && !screen.ready && screen.key === was.key && screen.i === was.i)) recCancel();
   _enter.call(this, screen, h);
   saveState();
+  if (!(screen && screen.type === 'rec' && !screen.ready) && window.speechSynthesis) speechSynthesis.cancel();
+  sayFor(screen);
   queueMicrotask(() => requestAnimationFrame(camSync));
 };
 const _go = Component.prototype.go;
@@ -2278,10 +2398,11 @@ Component.prototype.afterRec = function (sc, recorded) {
   }
   return _afterRec.call(this, sc, recorded);
 };
-// The permission screen: the phone asks for camera and microphone once, here, before the first space.
+// The permission screen: the phone asks for the camera (and, on the iPhone, the motion sensors) once, here.
 const _allow = Component.prototype.allowCamera;
 Component.prototype.allowCamera = function () {
   const go = () => _allow.call(this);
+  motionAsk(); audioUnlock();
   if (!camUsable()) return go();
   camStream().then((s) => { s.getTracks().forEach((t) => t.stop()); go(); }, (e) => { camFail(e, 'permesso'); go(); });
 };

@@ -117,6 +117,16 @@ button.btn-p{border:0;cursor:pointer}
 .ph{margin-top:12px;min-height:84px;border-radius:18px;border-style:dashed;display:grid;place-items:center;align-content:center;gap:4px;text-align:center;padding:10px}
 .stop{position:absolute;left:50%;margin-left:-42px;bottom:40px;width:84px;height:84px;border-radius:50%;border:2px solid #F3EBDD;background:transparent;display:grid;place-items:center;cursor:pointer;transition:transform .25s cubic-bezier(.3,.7,.2,1)}
 .stop:active{transform:scale(.94)}
+/* Follow the arrow */
+.trail{position:absolute;left:50%;top:0;width:390px;height:200px;margin-left:-195px}
+.trail-arrow,.trail-you{position:absolute;left:0;top:0;offset-rotate:auto;offset-distance:0%;border-radius:50%}
+.trail-arrow{width:46px;height:46px;background:#D9C29A;box-shadow:0 0 0 6px rgba(217,194,154,.28),0 8px 24px -6px rgba(8,6,3,.7);display:grid;place-items:center}
+.anim .trail-arrow{animation:trail-go var(--rdur,6s) linear both}
+.anim .trail.walk .trail-arrow{animation-duration:var(--wdur,4s)}
+@keyframes trail-go{0%,6%{offset-distance:0%}90%,100%{offset-distance:100%}}
+.trail-you{display:none;width:62px;height:62px;border:2.5px solid #F3EBDD;box-sizing:border-box;offset-distance:var(--you,0%);box-shadow:0 0 0 1px rgba(10,8,4,.3),inset 0 0 0 1px rgba(10,8,4,.3)}
+.trail-lab{position:absolute;left:0;right:0;top:206px;margin:0;text-align:center;font-size:24px;font-style:italic;color:#E6D3B0;text-shadow:0 1px 3px rgba(10,8,4,.6),0 2px 16px rgba(10,8,4,.6)}
+@media (prefers-reduced-motion: reduce){.anim .trail-arrow{animation:none;offset-distance:100%}}
 /* Ready to record: the camera's own red button, with the plan on one side and skipping on the other. */
 .recb{position:absolute;left:50%;margin-left:-42px;bottom:40px;width:84px;height:84px;border-radius:50%;border:3px solid #F3EBDD;background:transparent;display:grid;place-items:center;cursor:pointer;padding:0;transition:transform .25s cubic-bezier(.3,.7,.2,1)}
 .recb span{width:66px;height:66px;border-radius:50%;background:#E0583F}
@@ -333,11 +343,15 @@ button.btn-p{border:0;cursor:pointer}
                 <span class="irow-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"></path><circle cx="12" cy="13.5" r="3.5"></circle></svg></span>
                 <span style="display: flex; flex-direction: column; gap: 4px"><span class="irow-t">Fotocamera</span><span class="irow-p">Per riprendere gli spazi con la lente 0,5×. Solo le immagini: il microfono resta spento.</span></span>
               </div>
+              <div class="irow">
+                <span class="irow-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0 1 13-5.1M19.5 12a7.5 7.5 0 0 1-13 5.1"></path><path d="M17.5 3.5v3.5H14M6.5 20.5V17H10"></path></svg></span>
+                <span style="display: flex; flex-direction: column; gap: 4px"><span class="irow-t">Movimento</span><span class="irow-p">Per sapere quanto hai girato: ogni ripresa si ferma da sola.</span></span>
+              </div>
             </div>
           </section>
         </div>
         <div class="posa" style="--d: 650ms; margin-top: 16px">
-          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #F3EBDD; max-width: 34ch">Il telefono mostrerà la sua richiesta: tocca «Consenti».</p>
+          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #F3EBDD; max-width: 34ch">Il telefono può chiederti uno o due permessi: tocca sempre «Consenti».</p>
         </div>
         <nav style="margin-top: auto; display: flex; gap: 10px">
           <div class="posa" style="--d: 710ms; flex: 1; display: flex">
@@ -357,7 +371,7 @@ button.btn-p{border:0;cursor:pointer}
     <sc-if value="{{ isSpace }}" hint-placeholder-val="{{ false }}">
       <main style="flex: 1; display: flex; flex-direction: column; min-height: 0">
       <div class="posa" style="--d: 100ms; margin-top: 28px">
-        <div style="display: flex; justify-content: space-between; align-items: baseline"><span class="lab" style="color: #D9C29A">Scegli lo spazio</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><span class="lab" style="color: #D9C29A">{{ space.crumb }}</span></div>
       </div>
       <h1 class="dsp" style="margin: 10px 0 0; font-size: 40px; line-height: 1.04; letter-spacing: -.012em">
         <span class="posa" style="--d: 200ms"><span data-suono="1" style="display: block">Cosa riprendi</span></span>
@@ -779,29 +793,18 @@ button.btn-p{border:0;cursor:pointer}
           <span class="lv" style="position: absolute; left: 22px; width: 64px; height: 2px"></span>
           <span class="lv" style="position: absolute; right: 22px; width: 64px; height: 2px"></span>
         </div>
-        <sc-if value="{{ rec.isTurn }}" hint-placeholder-val="{{ true }}">
-          <div style="position: relative; width: 200px; height: 200px" role="img" aria-label="{{ rec.turnLabel }}">
-            <svg viewBox="-100 -100 200 200" width="200" height="200" aria-hidden="true" style="position: absolute; inset: 0">
-              <circle r="88" fill="rgba(18,15,9,.18)" stroke="rgba(243,235,221,.25)" stroke-width="2"></circle>
-              <g transform="rotate(-90)"><circle class="dial-prog" r="88" fill="none" stroke="#D9C29A" stroke-width="4" stroke-linecap="round" style="--end: {{ rec.dashEnd }}; --rdur: {{ rec.rdur }}"></circle></g>
-              <g class="dial-mark" style="--deg: {{ rec.deg }}; --rdur: {{ rec.rdur }}"><circle cx="0" cy="-88" r="7" fill="#F3EBDD"></circle></g>
-            </svg>
-            <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; text-shadow: 0 1px 10px rgba(10,8,4,.5)">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#E6D3B0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13a7 7 0 1 1 7 7"></path><path d="M3 9.5L5 13l3.5-2"></path></svg>
-              <span class="lab" style="font-size: 9px">Gira a destra</span>
-              <span class="dsp" style="font-size: 24px; font-style: italic; color: #E6D3B0">{{ rec.turnWords }}</span>
-            </div>
-          </div>
-        </sc-if>
-        <sc-if value="{{ rec.isWalk }}" hint-placeholder-val="{{ false }}">
-          <div style="position: relative; width: 200px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-shadow: 0 1px 10px rgba(10,8,4,.5)" role="img" aria-label="Cammina in avanti, piano">
-            <svg width="44" height="70" viewBox="0 0 44 70" fill="none" stroke="#E6D3B0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path class="chev c3" d="M8 26l14-12 14 12"></path><path class="chev c2" d="M8 42l14-12 14 12"></path><path class="chev c1" d="M8 58l14-12 14 12"></path>
-            </svg>
-            <span class="dsp" style="font-size: 24px; font-style: italic; color: #E6D3B0">Avanti, piano</span>
-            <span aria-hidden="true" style="width: 150px; height: 3px; border-radius: 2px; background: rgba(243,235,221,.25); overflow: hidden"><span class="walk-bar" style="display: block; height: 100%; background: #D9C29A; --wdur: {{ rec.wdur }}"></span></span>
-          </div>
-        </sc-if>
+        <!-- Follow the arrow: the dashed trail is the whole move, the arrow travels it at the right pace (a slow turn, a slow
+             walk). In the guide, the ring is where the phone really is (motion sensors): keep it on the arrow. -->
+        <div class="trail {{ rec.trailKind }}" role="img" aria-label="{{ rec.trailText }}" style="--rdur: {{ rec.rdur }}; --wdur: {{ rec.wdur }}">
+          <svg viewBox="0 0 390 200" width="390" height="200" aria-hidden="true" style="position: absolute; inset: 0; overflow: visible">
+            <path d="{{ rec.trailPath }}" fill="none" stroke="rgba(10,8,4,.35)" stroke-width="7" stroke-linecap="round" stroke-dasharray="12 13"></path>
+            <path d="{{ rec.trailPath }}" fill="none" stroke="#F3EBDD" stroke-width="4" stroke-linecap="round" stroke-dasharray="12 13"></path>
+            <path d="{{ rec.trailEnd }}" fill="none" stroke="#D9C29A" stroke-width="3"></path>
+          </svg>
+          <span class="trail-you" style="offset-path: path('{{ rec.trailPath }}')"></span>
+          <span class="trail-arrow" style="offset-path: path('{{ rec.trailPath }}')"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#17130C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5"></path></svg></span>
+        </div>
+        <p class="dsp trail-lab">{{ rec.trailText }}</p>
       </div>
       <div aria-live="polite" style="position: absolute; left: 0; right: 0; bottom: 210px; height: 44px; display: grid; place-items: center; pointer-events: none">
         <span class="chip chip-ok gl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Velocità giusta</span>
@@ -1446,14 +1449,14 @@ class Component extends DCLogic {
   nextStep(sc) {
     const n = stepsOf(sc.key).length;
     if (sc.i + 1 < n) this.go({ type: 'step', key: sc.key, i: sc.i + 1 });
-    else this.go({ type: 'done', key: sc.key });
+    else this.enter({ type: 'space', fatto: sc.key }, []);
   }
   // After a take (or a skipped point) the camera stays on and shows the next step, ready: one tap to record it.
   // The history stays the one of the step screens, so Pianta and Indietro work as before.
   afterRec(sc, recorded) {
     const n = stepsOf(sc.key).length, h = this.hist().concat([{ type: 'step', key: sc.key, i: sc.i }]);
     if (sc.i + 1 < n) this.enter({ type: 'rec', key: sc.key, i: sc.i + 1, ready: true, guide: true, prev: recorded ? sc.i : null }, h);
-    else this.enter({ type: 'done', key: sc.key }, h);
+    else this.enter({ type: 'space', fatto: sc.key }, []);   // the space is done: straight to the next one
   }
   // The permission screen: in the canvas it only moves on; the guide asks the phone for camera and microphone here.
   allowCamera() { this.go({ type: 'space' }); }
@@ -1491,8 +1494,9 @@ class Component extends DCLogic {
       snd: this.glass('snd'), fig: this.glass('fig'), back: this.glass('back'), fb: this.feedbackVals(),
       setup: { items: [], segs: [] }, perm: {}, pick: { tiles: [], go: {} }, step: { plan: BLANK, fp: {}, segs: [], actions: [] }, rec: { plan: BLANK },
       space: {
-        ambiente: () => this.go({ type: 'pick', group: 'rooms' }), corridoio: () => this.go({ type: 'step', key: 'corridoio', i: 0 }),
-        scala: () => this.go({ type: 'pick', group: 'stairs' }), finish: () => this.go({ type: 'end' })
+        ambiente: () => this.go({ type: 'pick', group: 'rooms' }), corridoio: () => this.go({ type: 'rec', key: 'corridoio', i: 0, ready: true, guide: true }),
+        scala: () => this.go({ type: 'pick', group: 'stairs' }), finish: () => this.go({ type: 'end' }),
+        crumb: sc.fatto ? 'Spazio finito · scegli il prossimo' : 'Scegli lo spazio'
       },
       done: { another: () => this.enter({ type: 'space' }, []), finish: () => this.go({ type: 'end' }) },
       end: { restart: () => this.enter({ type: 'setup', i: 0 }, []) }
@@ -1512,10 +1516,10 @@ class Component extends DCLogic {
       const rooms = sc.group === 'rooms', keys = rooms ? ROOMS : STAIRS;
       const go = {};
       // Holes can't read a hyphen, so 'scala-dritta' is reached as go.scala_dritta.
-      ROOMS.concat(STAIRS).forEach((k) => { go[k.replace('-', '_')] = () => this.go({ type: 'step', key: k, i: 0 }); });
+      ROOMS.concat(STAIRS).forEach((k) => { go[k.replace('-', '_')] = () => this.go({ type: 'rec', key: k, i: 0, ready: true, guide: true }); });
       v.pick = { rooms, stairs: !rooms, go, crumb: rooms ? 'Ambiente' : 'Scalinata', t1: rooms ? 'Che forma' : 'Che scala', t2: rooms ? 'ha?' : 'è?',
         tiles: keys.map((k, i) => ({ name: SHAPES[k].name, plan: planOf(k), d: (450 + i * 60) + 'ms', s: i === 0 ? '3' : '',
-          pick: () => this.go({ type: 'step', key: k, i: 0 }) })) };
+          pick: () => this.go({ type: 'rec', key: k, i: 0, ready: true, guide: true }) })) };
     }
     if (sc.type === 'step') {
       const steps = stepsOf(sc.key), st = steps[sc.i], [t1, t2] = splitTitle(st.title);
@@ -1540,6 +1544,10 @@ class Component extends DCLogic {
         avv: AVV[this.props.avviso] || 'auto',
         text: ready ? st.text : st.title + ': ' + (st.kind === 'turn' ? `gira verso destra, ${turnWords(st.arc.gradi)}.` : 'cammina piano seguendo la freccia.'),
         passo: `Passo ${sc.i + 1} di ${steps.length}`,
+        trailKind: turn ? 'turn' : 'walk',
+        trailPath: turn ? 'M40,135 Q195,35 350,135' : 'M195,196 L195,8',
+        trailEnd: turn ? 'M350,124 a11,11 0 1,0 0.01,0 Z' : 'M195,-3 a11,11 0 1,0 0.01,0 Z',
+        trailText: turn ? 'Segui la freccia · ' + turnWords(st.arc.gradi) : 'Segui la freccia, piano',
         ready, live: !ready, mode: ready ? 'is-ready' : 'is-live', clock: (this.state && this.state.clock) || '0:00',
         hasNote: ready && !!sc.note, note: sc.note || '', canSkip: ready && turn,
         hasRedo: !!prev, redoLabel: prev ? 'Rifai «' + prev.title + '»' : '',

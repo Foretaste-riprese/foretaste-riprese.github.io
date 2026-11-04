@@ -37,12 +37,14 @@ function doGet() {
   return out({ ok: true, guida: 'pronta' });
 }
 
-// Prepara l'arrivo di un video: crea il file in Drive e restituisce l'indirizzo
+// Prepara l'arrivo di un video (o di una risposta a voce del questionario): crea il file in Drive e restituisce l'indirizzo
 // a cui il telefono manda il video, a pezzi.
 function start(req) {
   const size = Number(req.size);
   if (!(size > 0) || size > MAX_SIZE) throw new Error('dimensione del video non valida');
-  const type = /^video\/[\w.+-]+$/.test(req.type || '') ? req.type : 'video/mp4';
+  // the videos of the guide, and the answers given aloud in the questionnaire
+  const t0 = String(req.type || '').split(';')[0].trim();
+  const type = /^(video|audio)\/[\w.+-]+$/.test(t0) ? t0 : 'video/mp4';
   const folder = casaFolder(req.casa);
   const res = UrlFetchApp.fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true', {
     method: 'post',

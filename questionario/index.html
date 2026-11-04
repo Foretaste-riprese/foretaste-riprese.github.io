@@ -108,6 +108,13 @@ nav { margin-top: auto; padding-top: 26px; display: flex; gap: 10px; }
 button.gl.mic.on, button.gl.mic.on:hover { background: rgba(224,88,63,.88); border-color: rgba(255,255,255,.3); }
 .mic.on .mic-dot { width: 8px; height: 8px; border-radius: 50%; background: #F3EBDD; animation: blink 1.4s ease-in-out infinite; }
 .mic-tip { display: flex; align-items: center; gap: 8px; line-height: 1.4; }
+.voices { display: flex; flex-direction: column; gap: 8px; }
+.voices:not(:empty) { margin-top: 12px; }
+.vchip { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 44px; align-items: center; gap: 4px; min-height: 52px; padding: 0 4px; border-radius: 18px; font-size: 14px; }
+.vplay, .vdel { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: var(--ink); }
+.vplay { color: var(--champ); }
+.vt { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vs { font-size: 12px; color: rgba(243,235,221,.78); }
 .mic-msg { margin: 10px 2px 0; font-size: 13px; line-height: 1.45; color: #F2B8A6; }
 @media (prefers-reduced-motion: reduce) { .mic.on .mic-dot { animation: none; } }
 .err { margin: 10px 0 0; color: #F2B8A6; font-size: 14px; }
@@ -243,7 +250,8 @@ const LINK = { casa: (QP.get('casa') || '').trim(), nome: (QP.get('nome') || '')
 const KEY = 'questionario-v1:' + LINK.casa + '|' + LINK.nome;
 const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 let S = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch (_) { return null; } })();
-if (!S || !S.id) S = { id: newId(), nome: LINK.nome, casa: LINK.casa, a: {}, idx: 0, finito: false, fromReview: false };
+if (!S || !S.id) S = { id: newId(), nome: LINK.nome, casa: LINK.casa, a: {}, v: {}, idx: 0, finito: false, fromReview: false };
+if (!S.v) S.v = {};   // the answers given aloud: per question, [{ id, d: seconds, t: type, link }]
 if (LINK.casa) S.casa = LINK.casa;
 if (LINK.nome) S.nome = LINK.nome;
 let saveT = null;
@@ -252,14 +260,18 @@ function save(now) {
   const w = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (_) {} };
   if (now) w(); else saveT = setTimeout(w, 300);
 }
-const answered = () => QS.filter((q) => (S.a[q.n] || '').trim()).length;
+const hasAnswer = (n) => !!((S.a[n] || '').trim() || (S.v[n] || []).length);
+const answered = () => QS.filter((q) => hasAnswer(q.n)).length;
+const fmtDur = (s) => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+// in the sheet, each answer given aloud is a line with the link to listen to it in Drive
+const voiceLines = (n) => (S.v[n] || []).map((x, i) => `Risposta a voce ${i + 1} (${fmtDur(x.d)}): ${x.link || 'in arrivo'}`).join('\n');
 
 // ---------- sending: the whole row each time, the newest only, one call at a time; again when the connection returns ----------
 let dirty = false, inFlight = false, lastOk = 0, sendErr = false, hideT = null, fails = 0;
 let lastSent = '';   // the row as Drive last received it: an unchanged row is not sent again
 function snapshot() {
   return { action: 'questionario', id: S.id, nome: S.nome || '', casa: S.casa || '', finito: !!S.finito,
-    domande: QS.map((q) => q.n + '. ' + fullText(q)), risposte: QS.map((q) => String(S.a[q.n] || '').slice(0, 5000)) };
+    domande: QS.map((q) => q.n + '. ' + fullText(q)), risposte: QS.map((q) => [String(S.a[q.n] || '').trim(), voiceLines(q.n)].filter(Boolean).join('\n\n').slice(0, 5000)) };
 }
 function queueSend() { if (JSON.stringify(snapshot()) !== lastSent) dirty = true; pump(); }
 async function pump() {
@@ -472,7 +484,7 @@ let SR_OK = !!SR && !IOS_OTHER && (() => { try { return localStorage.getItem('qu
 const micTip = () => `<span class="mic-tip">${MIC}<span>Per dettare, tocca il microfono della tastiera, in basso.</span></span>`;
 const MIC = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg>';
 let rec = null, recWant = false;
-const dictating = () => !!rec;
+const dictating = () => !!rec || !!vrec;
 // the words heard join what is already written, with a space, and a capital letter after a full stop
 function joinText(base, said) {
   said = said.trim(); if (!said) return base;
@@ -483,19 +495,19 @@ function joinText(base, said) {
 function setAnswer(v) {
   const ta = $('#ans'), c = cur(); if (!ta || c.t !== 'q') return;
   ta.value = v; S.a[c.n] = v; save(); grow(ta); count(ta);
-  const nb = $('#next'); if (nb) nb.textContent = nextLabel(v);
+  updateNext();
 }
 // the page can't use the microphone here: the button gives way to the keyboard's microphone, for good on this phone
 function micFallback(msg) {
   SR_OK = false;
   try { localStorage.setItem('questionario-dettatura', 'no'); } catch (_) {}
-  const b = $('.mic'); if (b) b.outerHTML = micTip();
-  micMsg(msg || '');
+  const b = $('[data-a="mic"]'); if (b) b.outerHTML = micButton();
+  micMsg(VOICE_OK ? (msg ? msg + ' ' : '') + 'Tocca «Rispondi a voce» e registra la risposta: la ascoltiamo noi.' : msg || '');
 }
 function micMsg(t) { const m = $('#mic-msg'); if (!m) return; m.hidden = !t; m.textContent = t || ''; }
 function drawMic() {
-  const b = $('.mic'); if (!b || !b.dataset.a) return;
-  const on = dictating();
+  const b = $('[data-a="mic"]'); if (!b) return;
+  const on = !!rec;
   b.classList.toggle('on', on);
   b.setAttribute('aria-pressed', String(on));
   b.innerHTML = on ? '<span class="mic-dot" aria-hidden="true"></span><span id="mic-t">Sto ascoltando · tocca per finire</span>' : MIC + '<span id="mic-t">Detta la risposta</span>';
@@ -518,7 +530,7 @@ function dictStart() {
   r.onerror = (e) => {
     const k = e && e.error;
     dictEnd(r);
-    if (k === 'not-allowed' || k === 'service-not-allowed') micFallback('Questo browser non permette al sito di usare il microfono.');
+    if (k === 'not-allowed' || k === 'service-not-allowed') micFallback('Qui la dettatura non funziona.');
     else if (k === 'no-speech') micMsg('Non ho sentito nulla: riprova, parlando vicino al telefono.');
     else if (k === 'network') micMsg('Per dettare serve la connessione a internet.');
     else if (k !== 'aborted') micMsg('La dettatura si è fermata: tocca di nuovo «Detta la risposta».');
@@ -537,6 +549,177 @@ function dictEnd(r) {
 }
 // the tap on «tocca per finire» always ends it, at once, even if the browser stays silent
 function dictStop() { const r = rec; if (!r) return; try { r.stop(); } catch (_) {} dictEnd(r); }
+
+
+// ---------- answering aloud, in every browser: the phone records, the recording goes to Drive with the property's videos ----------
+// Where the browser can turn speech into text (Safari on iPhone, Chrome elsewhere) «Detta la risposta» writes it; everywhere
+// else (Chrome and the apps' browsers on iPhone) «Rispondi a voce» records it, and the sheet gets the link to listen to it.
+const VOICE_OK = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+const VTYPE = (() => {
+  if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
+  return ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'].find((t) => { try { return MediaRecorder.isTypeSupported(t); } catch (_) { return false; } }) || '';
+})();
+const VMAX = 5 * 60;   // a recording stops by itself after 5 minutes
+const PLAY = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"></path></svg>';
+const PAUSE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="7" y="5.5" width="3.5" height="13" rx="1"></rect><rect x="13.5" y="5.5" width="3.5" height="13" rx="1"></rect></svg>';
+const XS = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>';
+function micButton() {
+  if (SR_OK) return `<button type="button" class="gl mic" data-a="mic" aria-pressed="false">${MIC}<span>Detta la risposta</span></button>`;
+  if (VOICE_OK) return `<button type="button" class="gl mic" data-a="voice" aria-pressed="false">${MIC}<span>Rispondi a voce</span></button>`;
+  return micTip();
+}
+// the recordings stay in the phone's own storage until they are in Drive (and after, to listen to them again)
+const BLOBS = {};
+const VSTORE = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => {
+    const r = indexedDB.open('questionario-voce', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('audio');
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  }));
+  const tx = (mode, fn) => open().then((db) => new Promise((res, rej) => {
+    const t = db.transaction('audio', mode), req = fn(t.objectStore('audio'));
+    t.oncomplete = () => res(req && req.result); t.onerror = t.onabort = () => rej(t.error);
+  }));
+  return { put: (id, b) => tx('readwrite', (st) => st.put(b, id)), get: (id) => tx('readonly', (st) => st.get(id)), drop: (id) => tx('readwrite', (st) => st.delete(id)) };
+})();
+const blobOf = async (id) => BLOBS[id] || (BLOBS[id] = await VSTORE.get(id).catch(() => null)) || null;
+let vrec = null;
+function drawVoiceBtn() {
+  const b = $('[data-a="voice"]'); if (!b) return;
+  const on = !!vrec;
+  b.classList.toggle('on', on);
+  b.setAttribute('aria-pressed', String(on));
+  b.innerHTML = on ? `<span class="mic-dot" aria-hidden="true"></span><span>Registro · ${fmtDur((Date.now() - vrec.t0) / 1000)} · tocca per finire</span>` : MIC + '<span>Rispondi a voce</span>';
+}
+function voiceList(n) {
+  return (S.v[n] || []).map((x, i) => `<div class="gl vchip">
+    <button type="button" class="vplay" data-a="vplay" data-id="${x.id}" aria-label="Ascolta la risposta a voce ${i + 1}">${vPlaying === x.id ? PAUSE : PLAY}</button>
+    <span class="vt">Risposta a voce ${i + 1} · ${fmtDur(x.d)}</span>
+    <span class="vs">${x.link ? 'Arrivata' : 'Salvata'}</span>
+    <button type="button" class="vdel" data-a="vdel" data-id="${x.id}" aria-label="Cancella la risposta a voce ${i + 1}">${XS}</button></div>`).join('');
+}
+function drawVoices() { const el = $('#voices'), c = cur(); if (el && c.t === 'q') el.innerHTML = voiceList(c.n); }
+async function voiceStart() {
+  const c = cur(); if (c.t !== 'q' || vrec || !VOICE_OK) return;
+  micMsg(''); voiceHush();
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
+  catch (e) {
+    const k = e && e.name;
+    micMsg(k === 'NotAllowedError' || k === 'SecurityError'
+      ? 'Il telefono non ha dato il permesso di usare il microfono. Riprova e tocca «Consenti», oppure scrivi la risposta.'
+      : k === 'NotFoundError' ? 'Non trovo un microfono su questo dispositivo: scrivi la risposta.' : 'Il microfono non è partito: riprova tra un attimo.');
+    return;
+  }
+  let mr;
+  try { mr = VTYPE ? new MediaRecorder(stream, { mimeType: VTYPE }) : new MediaRecorder(stream); }
+  catch (_) { stream.getTracks().forEach((t) => t.stop()); micMsg('Questo browser non sa registrare la voce: scrivi la risposta.'); return; }
+  // the music would end up in the recording: it stops while you speak, and comes back after
+  const a = window.__guidaMusica; SND.dictPaused = !!(a && !a.paused); if (SND.dictPaused) a.pause();
+  const v = { mr, stream, n: c.n, t0: Date.now(), chunks: [] };
+  mr.ondataavailable = (e) => { if (e.data && e.data.size) v.chunks.push(e.data); };
+  mr.onstop = () => voiceDone(v);
+  try { mr.start(1000); } catch (_) { stream.getTracks().forEach((t) => t.stop()); micMsg('La registrazione non è partita: riprova.'); return; }
+  vrec = v;
+  v.timer = setInterval(() => { if (vrec !== v) return; drawVoiceBtn(); if ((Date.now() - v.t0) / 1000 >= VMAX) voiceStop(); }, 500);
+  drawVoiceBtn();
+}
+// the tap on «tocca per finire» always ends it at once; the recording is kept when the browser hands it over
+function voiceStop() {
+  const v = vrec; if (!v) return;
+  vrec = null; v.t1 = Date.now(); clearInterval(v.timer);
+  try { if (v.mr.state !== 'inactive') v.mr.stop(); else voiceDone(v); } catch (_) { voiceDone(v); }
+  setTimeout(() => voiceDone(v), 2500);   // a browser that never says it stopped: keep what arrived
+  drawVoiceBtn();
+}
+function voiceDone(v) {
+  if (v.done) return;
+  v.done = true;
+  v.stream.getTracks().forEach((t) => t.stop());
+  if (SND.dictPaused && SND.musicOn()) SND.start(SND.shared().time);
+  SND.dictPaused = false;
+  const d = ((v.t1 || Date.now()) - v.t0) / 1000;
+  const type = (v.chunks[0] && v.chunks[0].type) || v.mr.mimeType || VTYPE || 'audio/mp4';
+  const blob = new Blob(v.chunks, { type });
+  if (!blob.size || d < 1) { micMsg('La registrazione è troppo corta: riprova, e parla dopo il tocco.'); return; }
+  const id = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  BLOBS[id] = blob;
+  (S.v[v.n] = S.v[v.n] || []).push({ id, d: Math.round(d), t: type, link: null });
+  save(true);
+  VSTORE.put(id, blob).catch(() => {});
+  drawVoices(); updateNext(); queueSend(); voicePump();
+}
+// listening again to a recording
+let vAudio = null, vPlaying = null;
+function voiceHush() { if (vAudio) { vAudio.pause(); } if (vPlaying) { vPlaying = null; drawVoices(); } }
+async function voicePlay(id) {
+  if (vPlaying === id) { voiceHush(); return; }
+  voiceHush();
+  const blob = await blobOf(id);
+  if (!blob) { micMsg('Questa registrazione non è più sul telefono, ma è già nelle risposte.'); return; }
+  if (!vAudio) {
+    vAudio = new Audio();
+    vAudio.onended = vAudio.onpause = () => {
+      if (vAudio._url) { URL.revokeObjectURL(vAudio._url); vAudio._url = null; }
+      vPlaying = null; drawVoices();
+      if (SND.listenPaused && SND.musicOn()) SND.start(SND.shared().time);
+      SND.listenPaused = false;
+    };
+  }
+  const m = window.__guidaMusica; SND.listenPaused = !!(m && !m.paused); if (SND.listenPaused) m.pause();
+  vAudio._url = URL.createObjectURL(blob);
+  vAudio.src = vAudio._url;
+  vPlaying = id; drawVoices();
+  vAudio.play().catch(() => { vPlaying = null; drawVoices(); micMsg('Non riesco a farla ascoltare qui, ma la registrazione è salvata.'); });
+}
+function voiceDelete(id) {
+  const c = cur(); if (c.t !== 'q') return;
+  if (!confirm('Cancellare questa risposta a voce?')) return;
+  if (vPlaying === id) voiceHush();
+  S.v[c.n] = (S.v[c.n] || []).filter((x) => x.id !== id);
+  if (!S.v[c.n].length) delete S.v[c.n];
+  delete BLOBS[id]; VSTORE.drop(id).catch(() => {});
+  save(true); drawVoices(); updateNext(); queueSend();
+}
+// sending the recordings: one at a time, into the property's folder (as the videos), then the row with their links
+let vBusy = false, vFails = 0;
+async function voicePump() {
+  if (vBusy || !CFG.scriptUrl || navigator.onLine === false) return;
+  vBusy = true;
+  try {
+    for (const q of QS) {
+      const list = S.v[q.n] || [];
+      for (let i = 0; i < list.length; i++) {
+        const x = list[i];
+        if (x.link) continue;
+        const blob = await blobOf(x.id);
+        if (!blob) continue;
+        await voiceSend(q.n, i, x, blob);
+        save(true); drawVoices(); queueSend();
+      }
+    }
+    vFails = 0;
+  } catch (e) {
+    console.warn('risposta a voce non inviata:', e);
+    vFails++; setTimeout(voicePump, Math.min(60000, 10000 * vFails));
+  }
+  vBusy = false;
+}
+async function voiceSend(n, i, x, blob) {
+  const type = String(x.t || 'audio/mp4').split(';')[0];
+  const ext = /webm/.test(type) ? '.webm' : /ogg/.test(type) ? '.ogg' : '.m4a';
+  const who = String(S.nome || 'Senza nome').replace(/[\\/:*?"<>|]+/g, ' ').trim();
+  const name = `Questionario · ${who} · domanda ${String(n).padStart(2, '0')} · voce ${i + 1}${ext}`;
+  const r0 = await fetch(CFG.scriptUrl, { method: 'POST', body: JSON.stringify({ action: 'start', casa: S.casa || 'Questionario della prova', name, type, size: blob.size, origin: location.origin }) });
+  const j = await r0.json();
+  if (!j.ok) throw new Error(j.error || 'risposta non valida');
+  const r = await fetch(j.location, { method: 'PUT', headers: { 'Content-Range': `bytes 0-${blob.size - 1}/${blob.size}` }, body: blob.slice(0, blob.size) });
+  if (!r.ok) throw new Error('Drive ' + r.status);
+  let f = {};
+  try { f = await r.json(); } catch (_) {}
+  x.link = f && f.id ? 'https://drive.google.com/file/d/' + f.id + '/view' : 'nella cartella «' + (S.casa || 'Questionario della prova') + '» del Drive';
+}
 
 // ---------- screens ----------
 const cur = () => SEQ[Math.max(0, Math.min(SEQ.length - 1, S.idx))];
@@ -581,7 +764,7 @@ function viewIntro() {
       <h2 class="lab" style="margin: 0 0 6px; color: rgba(243,235,221,.82)">Come funziona</h2>
       <ol style="list-style: none; margin: 0; padding: 0">
         <li class="li-row"><span class="li-n">i.</span><span>${QS.length} domande in ${PARTS.length} parti, una alla volta. Circa 20 minuti.</span></li>
-        <li class="li-row"><span class="li-n">ii.</span><span>${SR_OK ? 'Scrivi con parole tue, oppure tocca <strong>Detta la risposta</strong> e parla: il testo si scrive da solo.' : 'Scrivi con parole tue, oppure detta con il microfono della tastiera, in basso.'}</span></li>
+        <li class="li-row"><span class="li-n">ii.</span><span>${SR_OK ? 'Scrivi con parole tue, oppure tocca <strong>Detta la risposta</strong> e parla: il testo si scrive da solo.' : VOICE_OK ? 'Scrivi con parole tue, oppure tocca <strong>Rispondi a voce</strong> e parla: la registrazione arriva insieme alle risposte.' : 'Scrivi con parole tue, oppure detta con il microfono della tastiera, in basso.'}</span></li>
         <li class="li-row"><span class="li-n">iii.</span><span>Le risposte si salvano mentre scrivi: puoi fermarti e riprendere quando vuoi.</span></li>
       </ol>
     </section>
@@ -615,16 +798,17 @@ function viewQ(n) {
     ${q.h ? `<div class="posa" style="--d: 360ms"><p class="hint" data-suono="3">${esc(q.h)}</p></div>` : ''}
     <div class="free" data-suono="4" style="--d: 480ms; margin-top: 22px">
       <textarea class="gl answer" id="ans" aria-labelledby="q-t" placeholder="${esc(q.p || 'Scrivi qui, con parole tue')}" maxlength="5000">${esc(v)}</textarea>
-      <div class="under">${SR_OK ? `<button type="button" class="gl mic" data-a="mic" aria-pressed="false">${MIC}<span id="mic-t">Detta la risposta</span></button>`
-        : micTip()}<span id="cnt"></span></div>
+      <div class="under">${micButton()}<span id="cnt"></span></div>
       <p class="mic-msg" id="mic-msg" hidden></p>
+      <div class="voices" id="voices">${voiceList(n)}</div>
     </div>
-    <nav>${backBtn(710)}${nextBtn(760, nextLabel(v), 'id="next"')}</nav>
+    <nav>${backBtn(710)}${nextBtn(760, nextLabel(n), 'id="next"')}</nav>
   </main>`;
 }
-const nextLabel = (v) => S.fromReview ? 'Torna al riepilogo' : v.trim() ? 'Avanti' : 'Salta per ora';
+const nextLabel = (n) => S.fromReview ? 'Torna al riepilogo' : hasAnswer(n) ? 'Avanti' : 'Salta per ora';
+function updateNext() { const nb = $('#next'), c = cur(); if (nb && c.t === 'q') nb.textContent = nextLabel(c.n); }
 function viewReview() {
-  const done = answered(), miss = QS.filter((q) => !(S.a[q.n] || '').trim());
+  const done = answered(), miss = QS.filter((q) => !hasAnswer(q.n));
   return `${head()}<main>
     ${topRow('Alla fine', `${done} / ${QS.length}`).replace('__SEGS__', segs(1, 0))}
     <h1 class="dsp h1" style="margin-top: 28px">
@@ -664,6 +848,8 @@ function draw(animate) {
     return;
   }
   if (rec) { try { rec.abort(); } catch (_) {} rec = null; }
+  if (vrec) voiceStop();
+  voiceHush();
   app.className = 'prep';
   app.innerHTML = `<div class="scr">${html}</div>`;
   drawSound();
@@ -684,7 +870,7 @@ app.addEventListener('input', (e) => {
   if (t.id === 'ans') {
     const c = cur(); S.a[c.n] = t.value; save();
     grow(t); count(t);
-    const nb = $('#next'); if (nb) nb.textContent = nextLabel(t.value);
+    updateNext();
     clearTimeout(window.__qSend); window.__qSend = setTimeout(queueSend, 4000);
   }
   if (t.id === 'f-nome') { S.nome = t.value; save(); }
@@ -694,10 +880,13 @@ app.addEventListener('click', (e) => {
   const b = e.target.closest('[data-a]'); if (!b) return;
   const a = b.dataset.a, c = cur();
   if (a === 'sound') return SND.toggle();
-  if (a === 'mic') return dictating() ? dictStop() : dictStart();
+  if (a === 'mic') return rec ? dictStop() : dictStart();
+  if (a === 'voice') return vrec ? voiceStop() : voiceStart();
+  if (a === 'vplay') return voicePlay(b.dataset.id);
+  if (a === 'vdel') return voiceDelete(b.dataset.id);
   if (a === 'restart') {
     if (!confirm('Ricominciare da capo? Le risposte scritte su questo telefono verranno cancellate.')) return;
-    S = { id: newId(), nome: LINK.nome || S.nome, casa: LINK.casa || S.casa, a: {}, idx: 0, finito: false, fromReview: false };
+    S = { id: newId(), nome: LINK.nome || S.nome, casa: LINK.casa || S.casa, a: {}, v: {}, idx: 0, finito: false, fromReview: false };
     save(true); return draw();
   }
   if (a === 'back') {
@@ -746,6 +935,8 @@ if (SND.on) SND.start(SND.shared().time);
 draw();
 // anything written while offline last time goes now
 if (answered()) queueSend();
+voicePump();
+window.addEventListener('online', voicePump);
 </script>
 </body>
 </html>

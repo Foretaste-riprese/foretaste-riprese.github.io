@@ -65,7 +65,7 @@ Poi, se serve, ripubblica il canvas con lo strumento Artifact: `url` del canvas,
 
 ## In sospeso
 
-0. (Fatto il 5/11) Il proprietario ha incollato l'ultimo `apps-script/Code.gs` e aggiornato i deployment: ora lo script ha le azioni `questionario` e `report` e salva le foto come `image/jpeg` (prima diventavano «video/mp4» e nel Drive si potevano solo scaricare; le foto arrivate prima del 5/11 pomeriggio restano così). Dopo ogni modifica futura allo script: incollare, rimettere l'ID cartella, nuova versione di ogni deployment.
+0. (Fatto il 5/11) Il proprietario ha incollato l'ultimo `apps-script/Code.gs` e aggiornato i deployment: ora lo script ha le azioni `questionario` e `report` e salva le foto come `image/jpeg` (prima diventavano «video/mp4» e nel Drive si potevano solo scaricare; le foto arrivate prima del 5/11 pomeriggio restano così). Dopo ogni modifica futura allo script: incollare, rimettere l'ID cartella, nuova versione di ogni deployment. Il 5/11 il questionario è stato provato tutto in locale con un finto script (31 risposte in una riga, «Completato», ripresa dalla stessa domanda dopo la chiusura, risposta a voce caricata come `audio/mp4` con il link nel foglio): **manca la prova vera del proprietario** sul foglio «Questionario della prova».
 
 2. **Feedback in tempo reale a Claude**: idea proposta, non fatta. Lo script pubblica ogni feedback come commento in un repository **privato** `foretaste-feedback` (token GitHub nelle Proprietà dello script, mai nel codice), la sessione si iscrive alle notifiche e manda al proprietario un messaggio con le opzioni.
 3. **Dominio proprio** (es. `riprese.foretaste.it`): rimandato per costi. Richiede un record CNAME, un Custom domain su Pages e il nuovo indirizzo in `ORIGINS`.

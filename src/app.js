@@ -428,7 +428,8 @@ function turnBegin(sc) {
   turnEnd();
   const st = stepsOf(sc.key)[sc.i];
   if (st.kind !== 'turn') return;
-  Object.assign(MOT, { on: true, yaw: 0, last: 0, arc: st.arc.gradi, done: false });
+  // the arrow reaches the end of the trail at 90% of the step's time (trail-go): 6% still, then 15° a second
+  Object.assign(MOT, { on: true, yaw: 0, last: 0, arc: st.arc.gradi, done: false, t0: Date.now(), arrowMs: st.arc.gradi / 15 / 0.84 * 0.9 * 1000 });
   document.body.style.setProperty('--you', '0%');
   // no movement data within a second: no sensors here, the arrow alone guides and a sound marks the end of the turn
   MOT.check = setTimeout(() => {
@@ -440,8 +441,9 @@ function turnTick() {
   if (!MOT.arc || MOT.done) return;
   const p = Math.min(1, Math.abs(MOT.yaw) / MOT.arc);
   document.body.style.setProperty('--you', (p * 100).toFixed(1) + '%');
-  // the whole turn (a few degrees of grace): this take is done, the next step comes up
-  if (Math.abs(MOT.yaw) >= MOT.arc - 4 && Date.now() - CAM.t0 > 1500 && CAM.rec) {
+  // done only when both are at the end: the phone has turned the whole way (a few degrees of grace) AND the arrow has
+  // arrived. Slower than the arrow: it waits for the phone. Faster: it waits for the arrow.
+  if (Math.abs(MOT.yaw) >= MOT.arc - 4 && Date.now() - MOT.t0 >= MOT.arrowMs && Date.now() - CAM.t0 > 1500 && CAM.rec) {
     MOT.done = true;
     chime();
     const sc = comp.cur();

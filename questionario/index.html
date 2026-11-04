@@ -563,6 +563,14 @@ function dictStop() { const r = rec; if (!r) return; try { r.stop(); } catch (_)
 // Where the browser can turn speech into text (Safari on iPhone, Chrome elsewhere) «Detta la risposta» writes it; everywhere
 // else (Chrome and the apps' browsers on iPhone) «Rispondi a voce» records it, and the sheet gets the link to listen to it.
 const VOICE_OK = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+// The microphone refused once: the phone remembers it and no page can ask again. Where to unblock it, for this browser.
+function micBlocked() {
+  const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua);
+  const app = /CriOS/.test(ua) ? 'Chrome' : /FxiOS/.test(ua) ? 'Firefox' : /EdgiOS/.test(ua) ? 'Edge' : /GSA\//.test(ua) ? 'Google' : 'Safari';
+  if (ios && app === 'Safari') return 'Il microfono è bloccato per questa pagina. Tocca «aA» a sinistra dell’indirizzo → Impostazioni sito web → Microfono → Consenti, poi tocca di nuovo «Rispondi a voce». Se non basta: Impostazioni dell’iPhone → Safari → Microfono → Chiedi. Le risposte già date restano. Oppure scrivi la risposta.';
+  if (ios) return `Il microfono è bloccato. Apri Impostazioni dell’iPhone → ${app} → attiva Microfono, poi torna qui, ricarica la pagina e tocca di nuovo «Rispondi a voce». Le risposte già date restano. Oppure scrivi la risposta.`;
+  return 'Il microfono è bloccato per questa pagina. Tocca l’icona a sinistra dell’indirizzo → Autorizzazioni (o Impostazioni sito) → Microfono → Consenti, poi ricarica la pagina. Le risposte già date restano. Oppure scrivi la risposta.';
+}
 const VTYPE = (() => {
   if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
   return ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'].find((t) => { try { return MediaRecorder.isTypeSupported(t); } catch (_) { return false; } }) || '';
@@ -616,7 +624,7 @@ async function voiceStart() {
   catch (e) {
     const k = e && e.name;
     micMsg(k === 'NotAllowedError' || k === 'SecurityError'
-      ? 'Il telefono non ha dato il permesso di usare il microfono. Riprova e tocca «Consenti», oppure scrivi la risposta.'
+      ? micBlocked()
       : k === 'NotFoundError' ? 'Non trovo un microfono su questo dispositivo: scrivi la risposta.' : 'Il microfono non è partito: riprova tra un attimo.');
     return;
   }

@@ -17,7 +17,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="it_IT">
 <meta name="twitter:card" content="summary_large_image">
-<script>window.GUIDA_BUILD = '33d773d2fe';</script>
+<script>window.GUIDA_BUILD = '648481981d';</script>
 <script src="config.js?v=0c99e2d2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
@@ -2160,7 +2160,8 @@ async function camStream() {
   }
   // Android: the wide lens is often a zoom below 1 on the main camera
   const tr = s.getVideoTracks()[0], caps = tr.getCapabilities ? tr.getCapabilities() : {};
-  if (caps.zoom && caps.zoom.min < 1) { try { await tr.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] }); } catch (_) {} }
+  CAM.ultra = /ultra|0[.,]5/i.test(tr.label || '');
+  if (caps.zoom && caps.zoom.min < 1) { try { await tr.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] }); CAM.ultra = true; } catch (_) {} }
   return s;
 }
 function camOpen() {
@@ -2290,31 +2291,38 @@ function onMotion(e) {
   if (!MOT.on) { MOT.last = now; return; }
   const dt = MOT.last ? Math.min(0.1, (now - MOT.last) / 1000) : 0;
   MOT.last = now;
-  let rate = r.gamma || 0;
-  if (MOT.g) { const [x, y, z] = MOT.g, n = Math.hypot(x, y, z) || 1; rate = ((r.beta || 0) * x + (r.gamma || 0) * y + (r.alpha || 0) * z) / n; }
-  MOT.yaw += rate * dt;
+  // Turning around the up-down axis = the phone's rotation measured along gravity. The three numbers come in two orders:
+  // the standard one (alpha around z, beta around x, gamma around y) and the iPhone's (alpha around x, beta around y,
+  // gamma around z). Both are added up; the one that sees the turn is the right one (the other sees almost nothing).
+  const a = r.alpha || 0, b = r.beta || 0, c = r.gamma || 0;
+  let rateStd = c, rateIos = b;
+  if (MOT.g) {
+    const [x, y, z] = MOT.g, n = Math.hypot(x, y, z) || 1;
+    rateStd = (b * x + c * y + a * z) / n;
+    rateIos = (a * x + b * y + c * z) / n;
+  }
+  MOT.yawStd += rateStd * dt; MOT.yawIos += rateIos * dt;
+  MOT.yaw = Math.abs(MOT.yawIos) > Math.abs(MOT.yawStd) ? MOT.yawIos : MOT.yawStd;
   turnTick();
 }
 function turnBegin(sc) {
   turnEnd();
   const st = stepsOf(sc.key)[sc.i];
   if (st.kind !== 'turn') return;
-  // the arrow waits a moment where the phone points, then goes at 15° a second to the end of the turn
-  Object.assign(MOT, { on: true, yaw: 0, last: 0, arc: st.arc.gradi, done: false, sim: false, t0: Date.now(), arrowMs: (AIM_WAIT + st.arc.gradi / 15) * 1000 });
+  // the arrow starts where the phone points and goes at 15° a second, frame by frame, to the end of the turn
+  Object.assign(MOT, { on: true, yaw: 0, yawStd: 0, yawIos: 0, last: 0, arc: st.arc.gradi, done: false, sim: false, ended: false, t0: Date.now(), tgt: 0, lastF: 0, k: aimK() });
+  const w = document.querySelector('#board .aim-world');
+  if (w) w.style.setProperty('--len', (MOT.arc * MOT.k).toFixed(0) + 'px');
   if (!aimRaf) aimRaf = requestAnimationFrame(aimLoop);
   // no movement data within a second: no sensors here; the line moves with the arrow (it shows the pace) and a sound
   // marks the end of the turn
-  MOT.check = setTimeout(() => {
-    if (performance.now() - MOT.seen < 1000) return;
-    MOT.sim = true;
-    MOT.endT = setTimeout(() => { chime(); say('Fatto. Tocca stop.'); }, MOT.arrowMs - 1000 + 300);
-  }, 1000);
+  MOT.check = setTimeout(() => { if (performance.now() - MOT.seen >= 1000) MOT.sim = true; }, 1000);
 }
 function turnTick() {
   if (!MOT.arc || MOT.done) return;
   // done only when both are at the end: the phone has turned the whole way (a few degrees of grace) AND the arrow has
   // arrived. Slower than the arrow: it waits for the phone. Faster: it waits for the arrow.
-  if (Math.abs(MOT.yaw) >= MOT.arc - 4 && Date.now() - MOT.t0 >= MOT.arrowMs && Date.now() - CAM.t0 > 1500 && CAM.rec) {
+  if (Math.abs(MOT.yaw) >= MOT.arc - 4 && MOT.tgt >= MOT.arc && Date.now() - CAM.t0 > 1500 && CAM.rec) {
     MOT.done = true;
     chime();
     const sc = comp.cur();
@@ -2323,18 +2331,36 @@ function turnTick() {
 }
 // The arrow set in the room, moved once a frame: the layer with the line slides back by the degrees turned, the
 // arrow slides forward by the degrees it should be at. Only transforms: the page is not redrawn while filming.
-const AIM_K = 6, AIM_WAIT = 0.6;   // px of the guide's screen per degree (as in the design), seconds still at the start
+// How many px of the guide's screen one degree of turning moves the room: what the lens sees across the screen
+// (0.5×: about 104° on the picture's long side; 1×: about 69°), less what the screen crops of the picture.
+function aimK() {
+  const v = CAM.video;
+  if (!v || !v.videoWidth || !v.clientWidth) return 6;
+  const vw = v.videoWidth, vh = v.videoHeight, ew = v.clientWidth, eh = v.clientHeight;
+  const long = CAM.ultra ? 104 : 69, rad = Math.PI / 180;
+  const across = vw >= vh ? long : 2 * Math.atan(Math.tan(long / 2 * rad) * vw / vh) / rad;   // the picture's width, in degrees
+  const shown = ew / (vw * Math.max(ew / vw, eh / vh));                                        // the part of it on screen
+  const deg = 2 * Math.atan(Math.tan(across / 2 * rad) * shown) / rad;
+  return deg > 10 ? ew / deg : 6;
+}
+const PACE_TURN = 15;   // degrees a second, as in the design
 let aimRaf = 0;
-function aimLoop() {
+function aimLoop(now) {
   aimRaf = 0;
   if (!MOT.arc) return;
-  const tgt = Math.min(MOT.arc, Math.max(0, (Date.now() - MOT.t0) / 1000 - AIM_WAIT) * 15);
-  const yaw = MOT.sim ? tgt : Math.min(Math.abs(MOT.yaw), MOT.arc + 30);
+  // the arrow moves on with the frames actually drawn: if the phone stops drawing for a moment, it waits too (no jump)
+  const dt = MOT.lastF ? Math.min(0.05, (now - MOT.lastF) / 1000) : 0;
+  MOT.lastF = now;
+  if (CAM.rec) MOT.tgt = Math.min(MOT.arc, MOT.tgt + PACE_TURN * dt);
+  const tgt = MOT.tgt, yaw = MOT.sim ? tgt : Math.min(Math.abs(MOT.yaw), MOT.arc + 30), k = MOT.k || 6;
   const w = document.querySelector('#board .aim-world'), a = document.querySelector('#board .aim-arrow');
   // the arrow never leaves the screen: too far ahead or behind, it waits at the edge on its side
-  const off = Math.max(-165, Math.min(165, (tgt - yaw) * AIM_K));
-  if (w) w.style.transform = `translateX(${(-yaw * AIM_K).toFixed(1)}px)`;
-  if (a) a.style.transform = `translateX(${(yaw * AIM_K + off).toFixed(1)}px)`;
+  const off = Math.max(-165, Math.min(165, (tgt - yaw) * k));
+  if (w) w.style.transform = `translateX(${(-yaw * k).toFixed(1)}px)`;
+  if (a) a.style.transform = `translateX(${(yaw * k + off).toFixed(1)}px)`;
+  // without sensors: a sound when the arrow is at the end
+  if (MOT.sim && tgt >= MOT.arc && !MOT.ended) { MOT.ended = true; chime(); say('Fatto. Tocca stop.'); }
+  else if (!MOT.sim) turnTick();
   aimRaf = requestAnimationFrame(aimLoop);
 }
 function turnEnd() {

@@ -575,7 +575,7 @@ try {
     sync(); p.onchange = sync;
   }).catch(() => {});
 } catch (_) {}
-function redrawMic() { const b = document.querySelector('.under [data-a="voice"], .under [data-a="kbd"]'); if (b && !vrec) { b.outerHTML = micButton(); } const h = $('#mic-hint'); if (h) h.hidden = MIC_STATE !== ''; }
+function redrawMic() {}   // no microphone button any more (see micButton)
 const VTYPE = (() => {
   if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
   return ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'].find((t) => { try { return MediaRecorder.isTypeSupported(t); } catch (_) { return false; } }) || '';
@@ -584,7 +584,10 @@ const VMAX = 5 * 60;   // a recording stops by itself after 5 minutes
 const PLAY = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"></path></svg>';
 const PAUSE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="7" y="5.5" width="3.5" height="13" rx="1"></rect><rect x="13.5" y="5.5" width="3.5" height="13" rx="1"></rect></svg>';
 const XS = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>';
+// No microphone of the page any more (5/11, the owner): the box itself says to use the keyboard's microphone, which
+// asks for no permission and writes the answer. The code for dictation and recordings stays, unused.
 function micButton() {
+  return '';
   if (SR_OK) return `<button type="button" class="gl mic" data-a="mic" aria-pressed="false">${MIC}<span>Detta la risposta</span></button>`;
   if (VOICE_OK && MIC_STATE === 'no') return `<button type="button" class="gl mic" data-a="kbd">${MIC}<span>Detta con la tastiera</span></button>`;
   if (VOICE_OK) return `<button type="button" class="gl mic" data-a="voice" aria-pressed="false">${MIC}<span>Rispondi a voce</span></button>`;
@@ -789,7 +792,7 @@ function viewIntro() {
       <h2 class="lab" style="margin: 0 0 6px; color: rgba(243,235,221,.82)">Come funziona</h2>
       <ol style="list-style: none; margin: 0; padding: 0">
         <li class="li-row"><span class="li-n">i.</span><span>${QS.length} domande in ${PARTS.length} parti, una alla volta. Circa 20 minuti.</span></li>
-        <li class="li-row"><span class="li-n">ii.</span><span>${SR_OK ? 'Scrivi con parole tue, oppure tocca <strong>Detta la risposta</strong> e parla: il testo si scrive da solo.' : VOICE_OK ? 'Scrivi con parole tue, oppure tocca <strong>Rispondi a voce</strong> e parla: la registrazione arriva insieme alle risposte.' : 'Scrivi con parole tue, oppure detta con il microfono della tastiera, in basso.'}</span></li>
+        <li class="li-row"><span class="li-n">ii.</span><span>Scrivi con parole tue, oppure tocca la casella e poi il <strong>microfono della tastiera</strong>: parli e la risposta si scrive da sola.</span></li>
         <li class="li-row"><span class="li-n">iii.</span><span>Le risposte si salvano mentre scrivi: puoi fermarti e riprendere quando vuoi.</span></li>
       </ol>
     </section>
@@ -822,9 +825,9 @@ function viewQ(n) {
     <div class="posa" style="--d: 220ms"><h1 class="dsp q ${long ? 'long' : ''}" id="q-t" data-suono="2">${rich(q.t)}</h1></div>
     ${q.h ? `<div class="posa" style="--d: 360ms"><p class="hint" data-suono="3">${esc(q.h)}</p></div>` : ''}
     <div class="free" data-suono="4" style="--d: 480ms; margin-top: 22px">
-      <textarea class="gl answer" id="ans" aria-labelledby="q-t" placeholder="${esc(q.p || 'Scrivi qui, con parole tue')}" maxlength="5000">${esc(v)}</textarea>
+      <textarea class="gl answer" id="ans" lang="it" aria-labelledby="q-t" placeholder="${esc(q.p ? q.p + ', oppure tocca il microfono della tastiera e parla' : 'Scrivi qui, oppure tocca il microfono della tastiera e parla')}" maxlength="5000">${esc(v)}</textarea>
       <div class="under">${micButton()}<span id="cnt"></span></div>
-      <p class="mic-hint" id="mic-hint"${VOICE_OK && !SR_OK && MIC_STATE === '' ? '' : ' hidden'}>Il telefono chiederà il microfono: tocca «Consenti».</p>
+      <p class="mic-hint" id="mic-hint" hidden></p>
       <p class="mic-msg" id="mic-msg" hidden></p>
       <div class="voices" id="voices">${voiceList(n)}</div>
     </div>

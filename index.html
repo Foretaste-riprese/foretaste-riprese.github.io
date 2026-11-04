@@ -17,7 +17,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="it_IT">
 <meta name="twitter:card" content="summary_large_image">
-<script>window.GUIDA_BUILD = '29e57e9339';</script>
+<script>window.GUIDA_BUILD = 'c57a5bef4d';</script>
 <script src="config.js?v=0c99e2d2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
@@ -2517,7 +2517,7 @@ function audioUnlock() {   // inside a tap
 // two soft notes, rising: done
 function chime() {
   try {
-    if (!AC) return;
+    if (!AC || (comp && !comp.musicOn())) return;   // a sound effect: silent with the speaker off
     const t = AC.currentTime + 0.01;
     [[1046.5, 0], [1568, 0.12]].forEach(([f, d]) => {
       const o = AC.createOscillator(), g = AC.createGain();
@@ -2650,7 +2650,29 @@ function wakeSound() {
   const a = window.__guidaMusica;
   if (a && a.paused) comp.startMusic(comp.shared().time);
 }
-document.addEventListener('pointerdown', (e) => { if (!(e.target.closest && e.target.closest('.snd'))) wakeSound(); }, true);
+// The iPhone gives sound to a finished tap (finger lifted, or a click), not to the finger landing: every kind of touch
+// is listened to, so the very first tap anywhere starts music and effects (unless the speaker is off).
+['pointerdown', 'touchend', 'click'].forEach((k) => document.addEventListener(k, (e) => { if (!(e.target.closest && e.target.closest('.snd'))) wakeSound(); }, true));
+// Same for the design's own wait for a first touch (it listened to the finger landing only): tried at every kind of
+// touch until the music really plays.
+Component.prototype.waitForTouch = function () {
+  if (this._waiting) return;
+  this._waiting = true;
+  const EV = ['pointerdown', 'touchend', 'click', 'keydown'];
+  const done = () => { EV.forEach((k) => document.removeEventListener(k, wake, true)); this._waiting = false; };
+  const wake = (e) => {
+    if (e.target && e.target.closest && e.target.closest('.snd')) return;
+    if (!this._on || this.cur().type === 'rec') return;
+    const c = this.ctx();
+    if (c && c.state !== 'running') { try { c.resume(); } catch (_) {} }
+    const a = this.player();
+    if (!a.paused) { done(); return; }
+    const p = a.play();
+    const ok = () => { done(); this.startMusic(this.shared().time); this.forceUpdate(); };
+    if (p && p.then) p.then(ok, () => {}); else ok();
+  };
+  EV.forEach((k) => document.addEventListener(k, wake, true));
+};
 
 // ---------- leaving the browser: the music stops (the client is going to the Camera app) and comes back after ----------
 document.addEventListener('visibilitychange', () => {

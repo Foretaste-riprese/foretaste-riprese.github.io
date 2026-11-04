@@ -64,7 +64,7 @@ const STORE = (() => {
     r.onupgradeneeded = () => { r.result.createObjectStore('meta', { keyPath: 'id' }); r.result.createObjectStore('file'); };
     r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
   }));
-  const meta = (it) => ({ id: it.id, name: it.name, casa: it.casa, type: it.type, size: it.size, sent: it.sent, location: it.location || null });
+  const meta = (it) => ({ id: it.id, name: it.name, casa: it.casa, type: it.type, size: it.size, sent: it.sent, location: it.location || null, base: it.base || null, take: it.take || null });
   const write = (stores, fn) => open().then((db) => new Promise((res, rej) => {
     const t = db.transaction(stores, 'readwrite'); fn(t); t.oncomplete = () => res(); t.onerror = t.onabort = () => rej(t.error);
   }));
@@ -127,21 +127,26 @@ async function sendOne(it) {
     status();
   }
 }
-async function pump() {
-  if (busy || !CFG.scriptUrl) return;
-  busy = true; awake(true);
+// Three files travel at a time: for small files (photos) the wait to open each one in Drive weighs more than sending it.
+const PARALLEL = 3;
+let active = 0;
+function pump() {
+  if (!CFG.scriptUrl || navigator.onLine === false) return;
   let it;
-  while ((it = Q.find((x) => x.state === 'wait'))) {
-    it.state = 'send'; status();
-    try { await sendOne(it); it.state = 'ok'; it.file = null; STORE.drop(it.id).catch(() => {}); }
-    catch (e) {
-      it.state = 'wait'; it.errors = (it.errors || 0) + 1; status(true);
-      if (it.errors === 3 && navigator.onLine) report('Invio del video non riuscito', `${it.name} · ${fmtMB(it.size)} · arrivati ${fmtMB(it.sent)} · ${(e && e.message) || e}`);
-      await wait(Math.min(30000, 4000 * it.errors)); if (!navigator.onLine) break;
-    }
-    status();
+  while (active < PARALLEL && (it = Q.find((x) => x.state === 'wait' && !(x.retryAt > Date.now())))) sendItem(it);
+}
+async function sendItem(it) {
+  active++; busy = true; awake();
+  it.state = 'send'; status();
+  try { await sendOne(it); it.state = 'ok'; it.file = null; STORE.drop(it.id).catch(() => {}); }
+  catch (e) {
+    it.state = 'wait'; it.errors = (it.errors || 0) + 1; status(true);
+    if (it.errors === 3 && navigator.onLine) report('Invio non riuscito', `${it.name} · ${fmtMB(it.size)} · arrivati ${fmtMB(it.sent)} · ${(e && e.message) || e}`);
+    const ms = Math.min(30000, 4000 * it.errors);
+    it.retryAt = Date.now() + ms; setTimeout(pump, ms + 50);
   }
-  busy = false; awake(false); status();
+  active--; busy = active > 0; awake();
+  status(); pump();
 }
 window.addEventListener('online', pump);
 window.addEventListener('beforeunload', (e) => { if (pending().length) { e.preventDefault(); e.returnValue = ''; } });
@@ -170,33 +175,49 @@ function timeLeft(bytes) {
   const s = bytes / (sum / span);
   return s < 60 ? ' · meno di un minuto' : ` · ancora ${Math.round(s / 60)} min`;
 }
+// «12 foto», «1 video», «12 foto e 1 video»
+function things(list, cap) {
+  const f = list.filter((x) => /^image\//.test(x.type)).length, v = list.length - f;
+  const t = [f ? f + ' foto' : '', v ? v + ' video' : ''].filter(Boolean).join(' e ');
+  return cap ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+}
 let hideT = null;
 function status(trouble) {
   const el = $('#send'), p = pending();
   clearTimeout(hideT);
   if (!Q.length) { el.hidden = true; document.body.classList.remove('sending'); return; }
   el.hidden = false; document.body.classList.add('sending'); el.classList.toggle('ok', !p.length); el.classList.toggle('err', !!trouble && !navigator.onLine);
-  if (!p.length) { $('#send-t').textContent = Q.length === 1 ? 'Video arrivato' : `Tutti i ${Q.length} video sono arrivati`; hideT = setTimeout(() => { el.hidden = true; document.body.classList.remove('sending'); }, 6000); applyUpdate(); return; }
+  if (!p.length) { $('#send-t').textContent = Q.length === 1 ? 'Arrivato' : `${things(Q, true)}: tutto arrivato`; hideT = setTimeout(() => { el.hidden = true; document.body.classList.remove('sending'); }, 6000); applyUpdate(); return; }
   const tot = p.reduce((a, x) => a + x.size, 0), done = p.reduce((a, x) => a + x.sent, 0);
   const pct = tot ? Math.floor(done / tot * 100) : 0;
-  $('#send-t').textContent = !navigator.onLine ? 'Invio in pausa: manca la connessione' : `Invio ${p.length === 1 ? 'del video' : `di ${p.length} video`} · ${pct}%${timeLeft(tot - done)}`;
+  $('#send-t').textContent = !navigator.onLine ? 'Invio in pausa: manca la connessione' : `Invio di ${things(p)} · ${pct}%${timeLeft(tot - done)}`;
 }
-function enqueue(file, sc) {
-  const steps = stepsOf(sc.key), st = steps[sc.i], ext = (file.name.match(/\.\w+$/) || ['.mp4'])[0].toLowerCase();
+// One take into the sending queue: a video, or its photos («… · foto 07.jpg»). The same step done again: the earlier
+// take is dropped if none of it has left yet; otherwise both arrive and the new one says «ripresa 2».
+function enqueueTake(files, sc) {
+  const steps = stepsOf(sc.key), st = steps[sc.i];
   const where = AREA(sc.key) + (sc.key === 'corridoio' ? '' : ' ' + SHAPES[sc.key].name);
   const c = casa() || 'Senza nome', base = `${where} · passo ${String(sc.i + 1).padStart(2, '0')} di ${steps.length} · ${st.title}`;
-  // the same step filmed again: the take still waiting is replaced; one already on its way stays, and the new one says «ripresa 2»
-  const same = (x) => x.casa === c && x.name.replace(/( · ripresa \d+)?\.\w+$/, '') === base;
-  Q.filter((x) => same(x) && x.state === 'wait' && !x.sent).forEach((x) => { Q.splice(Q.indexOf(x), 1); STORE.drop(x.id).catch(() => {}); });
-  const n = Q.filter(same).length;
-  const name = base + (n ? ` · ripresa ${n + 1}` : '') + ext;
-  const it = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), file, name, casa: c, type: file.type || 'video/mp4', size: file.size, sent: 0, state: 'wait' };
-  Q.push(it);
-  // once in the browser's storage, the video is read from there: a take held in memory could make the phone close the page
-  STORE.add(it).then(() => STORE.file(it.id)).then((f) => { if (f && it.file) it.file = f; })
-    .catch((e) => report('Archivio del telefono non disponibile', `${it.name} · ${fmtMB(it.size)} · ${(e && (e.name || e.message)) || e}`));
+  const same = (x) => x.casa === c && (x.base ? x.base === base : x.name.replace(/( · ripresa \d+)?( · foto \d+)?\.\w+$/, '') === base);
+  const takes = {};
+  Q.filter(same).forEach((x) => { const k = x.take || x.id; (takes[k] = takes[k] || []).push(x); });
+  Object.values(takes).forEach((xs) => {
+    if (xs.every((x) => x.state === 'wait' && !x.sent)) xs.forEach((x) => { Q.splice(Q.indexOf(x), 1); STORE.drop(x.id).catch(() => {}); });
+  });
+  const n = new Set(Q.filter(same).map((x) => x.take || x.id)).size;
+  const rip = n ? ` · ripresa ${n + 1}` : '', take = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  files.forEach((file, k) => {
+    const ext = (file.name.match(/\.\w+$/) || ['.mp4'])[0].toLowerCase();
+    const name = base + rip + (files.length > 1 || /^image\//.test(file.type) ? ` · foto ${String(k + 1).padStart(2, '0')}` : '') + ext;
+    const it = { id: take + '-' + k, file, name, base, take, casa: c, type: file.type || 'video/mp4', size: file.size, sent: 0, state: 'wait' };
+    Q.push(it);
+    // once in the browser's storage, the file is read from there: held in memory it could make the phone close the page
+    STORE.add(it).then(() => STORE.file(it.id)).then((f) => { if (f && it.file) it.file = f; })
+      .catch((e) => report('Archivio del telefono non disponibile', `${it.name} · ${fmtMB(it.size)} · ${(e && (e.name || e.message)) || e}`));
+  });
   status(); pump();
 }
+const enqueue = (file, sc) => enqueueTake([file], sc);
 
 // ---------- the sheet ----------
 const OV = { screen: null };
@@ -255,8 +276,8 @@ function drawEnd() {
   const p = pending();
   sheet(`<div class="o-top"><div style="display: flex; flex-direction: column; gap: 8px"><span class="o-lab">Alla fine</span><h2 class="o-h" id="ov-title">${p.length ? 'Quasi <em>fatto</em>' : 'Grazie, <em>è tutto</em>'}</h2></div>${X}</div>
     <p class="o-p" style="color: var(--ink)">${p.length
-      ? `Stiamo ancora mandando ${p.length === 1 ? 'un video' : p.length + ' video'} (${fmtMB(p.reduce((a, x) => a + x.size - x.sent, 0))}). Tieni aperta questa pagina, con il Wi-Fi se puoi, finché in alto compare «Tutti i video sono arrivati».`
-      : Q.length ? `Abbiamo ricevuto tutti i ${Q.length} video. Puoi chiudere la pagina.` : 'Hai finito le riprese.'}</p>
+      ? `Stiamo ancora mandando ${things(p)} (${fmtMB(p.reduce((a, x) => a + x.size - x.sent, 0))}). Tieni aperta questa pagina, con il Wi-Fi se puoi, finché in alto compare «tutto arrivato».`
+      : Q.length ? `Abbiamo ricevuto tutto: ${things(Q)}. Puoi chiudere la pagina.` : 'Hai finito le riprese.'}</p>
     <div class="o-row"><button type="button" class="o-btn p" data-a="close">${p.length ? 'Va bene' : 'Chiudi'}</button></div>
     <button type="button" class="o-link" data-a="restart">Ricomincia la guida</button>`);
 }
@@ -307,7 +328,37 @@ const MIME = (() => {
 })();
 const HEVC = /hvc1|hev1/.test(MIME);
 const BITRATE = HEVC ? 14e6 : 20e6;   // a minute of video: about 105 MB in HEVC, 150 MB in H.264
-const camUsable = () => !CAM.failed && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+// Photos, not video: only the frames are used (for the 3D model of the room and as references), and a photo taken
+// straight from the camera is sharper than a frame of a compressed video. 4K JPEG, made by a worker so the camera's
+// picture never stalls. Where the phone can't (no OffscreenCanvas), a video as before.
+const PHOTO = !!(window.createImageBitmap && window.OffscreenCanvas && OffscreenCanvas.prototype.convertToBlob && window.Worker);
+const PHOTO_STEP = 15;    // turns: a photo every 15° actually turned (enough overlap between neighbours for the 3D model)
+const PHOTO_WALK = 500;   // walks: a photo every half second (about every 25 cm at a slow walk)
+const PHOTO_Q = 0.88;     // JPEG quality: about 2 MB a photo in 4K
+const camUsable = () => !CAM.failed && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && (PHOTO || window.MediaRecorder));
+const SHOT = { worker: null, n: 0, waiting: new Map(), failed: false };
+function shooter() {
+  if (SHOT.worker) return SHOT.worker;
+  const src = "onmessage = async (e) => { const { id, bmp, q } = e.data; try { const c = new OffscreenCanvas(bmp.width, bmp.height); c.getContext('2d').drawImage(bmp, 0, 0); bmp.close(); const b = await c.convertToBlob({ type: 'image/jpeg', quality: q }); postMessage({ id, b }); } catch (err) { postMessage({ id, err: String((err && err.message) || err) }); } };";
+  SHOT.worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+  SHOT.worker.onmessage = (e) => { const w = SHOT.waiting.get(e.data.id); if (!w) return; SHOT.waiting.delete(e.data.id); if (e.data.b) w.ok(e.data.b); else w.no(new Error(e.data.err)); };
+  return SHOT.worker;
+}
+async function shoot() {
+  const v = CAM.video;
+  if (!v || !v.videoWidth) throw new Error('nessuna immagine');
+  const bmp = await createImageBitmap(v);
+  const id = ++SHOT.n;
+  return new Promise((ok, no) => { SHOT.waiting.set(id, { ok, no }); shooter().postMessage({ id, bmp, q: PHOTO_Q }, [bmp]); });
+}
+// One photo for this take; at most two being made at once (unless it is the last one), so the phone never piles up
+function takeShot(r, last) {
+  if (!r || (r.making >= 2 && !last)) return false;
+  r.making++;
+  r.shots.push(shoot().catch((e) => { if (!SHOT.failed) { SHOT.failed = true; report('Foto non riuscita', String((e && e.message) || e)); } return null; })
+    .finally(() => { r.making--; }));
+  return true;
+}
 const camWanted = () => !!comp && !document.hidden && (comp.cur().type === 'rec' || (comp.cur().type === 'step' && CAM.granted));
 function camFail(e, where) {
   const n = (e && e.name) || '';
@@ -380,6 +431,7 @@ function camShow() {
 function clock(ms) { const t = Math.floor(ms / 1000); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
 function recStart(sc) {
   if (CAM.rec || !CAM.stream) return;
+  if (PHOTO) return photoStart(sc);
   let r;
   try { r = new MediaRecorder(CAM.stream, Object.assign({ videoBitsPerSecond: BITRATE }, MIME ? { mimeType: MIME } : {})); }
   catch (e) { camFail(e, 'registrazione'); CAM.failed = CAM.failed || 'MediaRecorder'; camClose(); toCameraApp(sc); return; }
@@ -395,12 +447,35 @@ function recStart(sc) {
   if (CAM.video) CAM.video.play().catch(() => {});
   awake();
 }
-// Stop the take: with keep, it becomes a video in the sending queue as soon as the phone hands it over.
+// A take of photos: one at the start, then every 15° turned (see aimLoop) or every half second walking.
+function photoStart(sc) {
+  const r = CAM.rec = { photo: true, shots: [], making: 0, next: PHOTO_STEP, timer: null };
+  CAM.sc = sc;
+  turnBegin(sc);
+  CAM.t0 = Date.now();
+  takeShot(r);
+  if (stepsOf(sc.key)[sc.i].kind !== 'turn') r.timer = setInterval(() => takeShot(r), PHOTO_WALK);
+  CAM.tick = setInterval(() => { const el = document.querySelector('#board .rec-clock'); if (el && el.firstChild) el.firstChild.nodeValue = `${clock(Date.now() - CAM.t0)} · ${r.shots.length} foto`; }, 500);
+  if (CAM.video) CAM.video.play().catch(() => {});
+  awake();
+}
+// Stop the take: with keep, it goes into the sending queue as soon as its photos (or its video) are ready.
 function recStop(keep) {
   const r = CAM.rec, sc = CAM.sc, ms = Date.now() - CAM.t0;
   if (!r) return;
   CAM.rec = null; CAM.sc = null; clearInterval(CAM.tick);
   turnEnd();
+  if (r.photo) {
+    clearInterval(r.timer);
+    if (keep) takeShot(r, true);   // the view where the take ends
+    Promise.all(r.shots).then((bs) => {
+      if (!keep) return;
+      const ok = bs.filter((b) => b && b.size);
+      if (!ok.length) { report('Nessuna foto', clock(ms)); takeAgain(sc); return; }
+      if (CFG.scriptUrl) enqueueTake(ok.map((b) => new File([b], 'foto.jpg', { type: 'image/jpeg' })), sc);
+    });
+    return;
+  }
   r.onstop = () => {
     const chunks = r.chunks; r.chunks = null;
     if (!keep) return;
@@ -547,6 +622,9 @@ function aimLoop(now) {
   const off = Math.max(-165, Math.min(165, (tgt - yaw) * k));
   if (w) w.style.transform = `translateX(${(-yaw * k).toFixed(1)}px)`;
   if (a) a.style.transform = `translateX(${(yaw * k + off).toFixed(1)}px)`;
+  // a photo every 15° actually turned (without sensors: every 15° of the arrow)
+  const r = CAM.rec;
+  if (r && r.photo && Math.min(yaw, MOT.arc) >= r.next && takeShot(r)) r.next += PHOTO_STEP;
   // without sensors: a sound when the arrow is at the end
   if (MOT.sim && tgt >= MOT.arc && !MOT.ended) { MOT.ended = true; chime(); say('Fatto. Tocca stop.'); }
   else if (!MOT.sim) turnTick();

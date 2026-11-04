@@ -442,7 +442,7 @@ function turnBegin(sc) {
   const st = stepsOf(sc.key)[sc.i];
   if (st.kind !== 'turn') return;
   // the arrow starts where the phone points and goes at 15° a second, frame by frame, to the end of the turn
-  Object.assign(MOT, { on: true, yaw: 0, yawStd: 0, yawIos: 0, last: 0, arc: st.arc.gradi, done: false, sim: false, ended: false, t0: Date.now(), tgt: 0, lastF: 0, k: aimK() });
+  Object.assign(MOT, { on: true, yaw: 0, yawStd: 0, yawIos: 0, last: 0, arc: st.arc.gradi, done: false, sim: false, ended: false, started: false, t0: Date.now(), tgt: 0, lastF: 0, k: aimK() });
   const w = document.querySelector('#board .aim-world');
   if (w) w.style.setProperty('--len', (MOT.arc * MOT.k).toFixed(0) + 'px');
   if (!aimRaf) aimRaf = requestAnimationFrame(aimLoop);
@@ -483,7 +483,10 @@ function aimLoop(now) {
   // the arrow moves on with the frames actually drawn: if the phone stops drawing for a moment, it waits too (no jump)
   const dt = MOT.lastF ? Math.min(0.05, (now - MOT.lastF) / 1000) : 0;
   MOT.lastF = now;
-  if (CAM.rec) MOT.tgt = Math.min(MOT.arc, MOT.tgt + PACE_TURN * dt);
+  // the arrow waits in the ring until the phone starts turning (3°), then sets off from there with it: nobody starts
+  // behind. Without sensors there is nothing to wait for: it sets off at once.
+  if (!MOT.started && !MOT.sim && Math.abs(MOT.yaw) >= 3) { MOT.started = true; MOT.tgt = Math.min(MOT.arc, Math.abs(MOT.yaw)); }
+  if (CAM.rec && (MOT.started || MOT.sim)) MOT.tgt = Math.min(MOT.arc, MOT.tgt + PACE_TURN * dt);
   const tgt = MOT.tgt, yaw = MOT.sim ? tgt : Math.min(Math.abs(MOT.yaw), MOT.arc + 30), k = MOT.k || 6;
   const w = document.querySelector('#board .aim-world'), a = document.querySelector('#board .aim-arrow');
   // the arrow never leaves the screen: too far ahead or behind, it waits at the edge on its side
@@ -539,7 +542,9 @@ function sayFor(sc) {
   if (sc.type !== 'rec') return;
   const st = stepsOf(sc.key)[sc.i];
   if (sc.ready) say((sc.note ? sc.note + ' ' : '') + st.text.replace(/[()]/g, '').replace(/\bpremi Registra\b/g, 'tocca il tasto rosso').replace(/\bPremi Registra\b/g, 'Tocca il tasto rosso'));
-  else say(st.kind === 'turn' ? 'Segui la freccia.' : 'Cammina piano. Tocca stop quando arrivi.');
+  else if (st.kind !== 'turn') say('Cammina piano. Tocca stop quando arrivi.');
+  else if (!lsGet('guida-freccia')) { lsSet('guida-freccia', '1'); say('Gira piano e tieni la freccia dentro il cerchio.'); }   // the first turn only
+  else say('Segui la freccia.');
 }
 
 // ---------- hooks into the guide ----------

@@ -117,16 +117,20 @@ button.btn-p{border:0;cursor:pointer}
 .ph{margin-top:12px;min-height:84px;border-radius:18px;border-style:dashed;display:grid;place-items:center;align-content:center;gap:4px;text-align:center;padding:10px}
 .stop{position:absolute;left:50%;margin-left:-42px;bottom:40px;width:84px;height:84px;border-radius:50%;border:2px solid #F3EBDD;background:transparent;display:grid;place-items:center;cursor:pointer;transition:transform .25s cubic-bezier(.3,.7,.2,1)}
 .stop:active{transform:scale(.94)}
-/* Follow the arrow: an arc of a circle of radius 260 whose centre is below the box; arrow and ring sit on arms turning
-   around that centre, from -32.6° to +32.6° (the arc's two ends). */
-.trail{position:absolute;left:50%;bottom:196px;width:390px;height:96px;margin-left:-195px;pointer-events:none}
-.trail-arm{position:absolute;left:195px;top:280px;width:0;height:0;transform:rotate(-32.6deg);will-change:transform}
-.trail-arrow,.trail-you{position:absolute;border-radius:50%;box-sizing:border-box}
-.trail-arrow{left:-17px;top:-277px;width:34px;height:34px;background:#D9C29A;box-shadow:0 0 0 5px rgba(217,194,154,.25),0 6px 18px -6px rgba(8,6,3,.7);display:grid;place-items:center}
-.anim .trail-arrow-arm{animation:trail-go var(--rdur,6s) linear both}
-@keyframes trail-go{0%,6%{transform:rotate(-32.6deg)}90%,100%{transform:rotate(32.6deg)}}
-.trail-you{display:none;left:-23px;top:-283px;width:46px;height:46px;border:2.5px solid #F3EBDD;box-shadow:0 0 0 1px rgba(10,8,4,.3),inset 0 0 0 1px rgba(10,8,4,.3)}
-@media (prefers-reduced-motion: reduce){.anim .trail-arrow-arm{animation:none;transform:rotate(32.6deg)}}
+/* Follow the arrow, set in the room: 6 px of screen for each degree turned (about what the 0.5× lens shows across the
+   screen). Line and arrow live in a layer that slides by the degrees turned; the arrow slides on it by the degrees it
+   should be at. Both only move (transform), so the phone draws them without redrawing the page. */
+.aim{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
+.aim-world{position:absolute;left:0;top:0;will-change:transform}
+.aim-line{position:absolute;left:0;top:-1.5px;width:var(--len);height:3px;background:repeating-linear-gradient(90deg,#F3EBDD 0 11px,transparent 11px 23px);filter:drop-shadow(0 0 2px rgba(10,8,4,.7))}
+.aim-end{position:absolute;left:var(--len);top:-10px;width:20px;height:20px;margin-left:-10px;border-radius:50%;border:2.5px solid #D9C29A;box-sizing:border-box;filter:drop-shadow(0 0 2px rgba(10,8,4,.6))}
+.aim-arrow{position:absolute;left:-15px;top:-15px;width:30px;height:30px;border-radius:50%;background:#D9C29A;display:grid;place-items:center;box-shadow:0 0 0 4px rgba(217,194,154,.25),0 4px 14px -4px rgba(8,6,3,.7);will-change:transform}
+.aim-you{position:absolute;left:-24px;top:-24px;width:48px;height:48px;border-radius:50%;border:2.5px solid #F3EBDD;box-sizing:border-box;box-shadow:0 0 0 1px rgba(10,8,4,.35),inset 0 0 0 1px rgba(10,8,4,.35)}
+.anim .aim-world{animation:aim-world var(--rdur,6s) linear both}
+.anim .aim-arrow{animation:aim-arrow var(--rdur,6s) linear both}
+@keyframes aim-world{0%,6%{transform:translateX(0)}90%,100%{transform:translateX(calc(var(--len) * -1))}}
+@keyframes aim-arrow{0%,6%{transform:translateX(0)}90%,100%{transform:translateX(var(--len))}}
+@media (prefers-reduced-motion: reduce){.anim .aim-world,.anim .aim-arrow{animation:none}}
 /* Ready to record: the camera's own red button, with the plan on one side and skipping on the other. */
 .recb{position:absolute;left:50%;margin-left:-42px;bottom:40px;width:84px;height:84px;border-radius:50%;border:3px solid #F3EBDD;background:transparent;display:grid;place-items:center;cursor:pointer;padding:0;transition:transform .25s cubic-bezier(.3,.7,.2,1)}
 .recb span{width:66px;height:66px;border-radius:50%;background:#E0583F}
@@ -794,18 +798,17 @@ button.btn-p{border:0;cursor:pointer}
           <span class="lv" style="position: absolute; right: 22px; width: 64px; height: 2px"></span>
         </div>
       </div>
-      <!-- Follow the arrow (turns only), low on the screen so the picture stays clear: the dashed arc is the whole turn,
-           the arrow travels it at the right pace. In the guide, the ring is where the phone really is: keep it on the arrow.
-           Both move by rotating around the arc's centre, which the phone draws without redrawing the page. -->
+      <!-- Follow the arrow (turns only), set in the room: the dashed line starts where the phone points when the take
+           starts and runs the whole turn; the arrow travels it at the right pace. Turning at that pace keeps the arrow in
+           the ring in the middle. In the guide the motion sensors move line and arrow; here they show the idea. -->
       <sc-if value="{{ rec.isTurn }}" hint-placeholder-val="{{ true }}">
-        <div class="trail" role="img" aria-label="{{ rec.trailText }}" style="--rdur: {{ rec.rdur }}">
-          <svg viewBox="0 0 390 96" width="390" height="96" aria-hidden="true" style="position: absolute; inset: 0; overflow: visible">
-            <path d="M55,61 A260,260 0 0,1 335,61" fill="none" stroke="rgba(10,8,4,.3)" stroke-width="5" stroke-linecap="round" stroke-dasharray="10 12"></path>
-            <path d="M55,61 A260,260 0 0,1 335,61" fill="none" stroke="#F3EBDD" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="10 12" opacity=".9"></path>
-            <circle cx="335" cy="61" r="8" fill="none" stroke="#D9C29A" stroke-width="2.5"></circle>
-          </svg>
-          <span class="trail-arm trail-you-arm"><span class="trail-you"></span></span>
-          <span class="trail-arm trail-arrow-arm"><span class="trail-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17130C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5"></path></svg></span></span>
+        <div class="aim" role="img" aria-label="{{ rec.trailText }}" style="--rdur: {{ rec.rdur }}">
+          <div class="aim-world" style="--len: {{ rec.aimLen }}">
+            <span class="aim-line"></span>
+            <span class="aim-end"></span>
+            <span class="aim-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#17130C" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5"></path></svg></span>
+          </div>
+          <span class="aim-you"></span>
         </div>
       </sc-if>
       <div aria-live="polite" style="position: absolute; left: 0; right: 0; bottom: 210px; height: 44px; display: grid; place-items: center; pointer-events: none">
@@ -1546,7 +1549,7 @@ class Component extends DCLogic {
         avv: AVV[this.props.avviso] || 'auto',
         text: ready ? st.text : st.title + ': ' + (st.kind === 'turn' ? `gira verso destra, ${turnWords(st.arc.gradi)}.` : 'cammina piano, guardando avanti.'),
         passo: `Passo ${sc.i + 1} di ${steps.length}`,
-        trailText: turn ? 'Segui la freccia · ' + turnWords(st.arc.gradi) : '',
+        trailText: turn ? 'Segui la freccia · ' + turnWords(st.arc.gradi) : '', aimLen: (turn ? st.arc.gradi * 6 : 0) + 'px',
         ready, live: !ready, mode: ready ? 'is-ready' : 'is-live', clock: (this.state && this.state.clock) || '0:00',
         hasNote: ready && !!sc.note, note: sc.note || '', canSkip: ready && turn,
         hasRedo: !!prev, redoLabel: prev ? 'Rifai «' + prev.title + '»' : '',

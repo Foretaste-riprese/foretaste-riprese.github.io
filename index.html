@@ -17,7 +17,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="it_IT">
 <meta name="twitter:card" content="summary_large_image">
-<script>window.GUIDA_BUILD = '1992fee45d';</script>
+<script>window.GUIDA_BUILD = '33d773d2fe';</script>
 <script src="config.js?v=0c99e2d2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
@@ -101,8 +101,8 @@ body { background: var(--ground); color: var(--ink); overflow-x: hidden; }
 /* the camera inside the guide: its live picture fills the recording screen, under the guide's glass */
 #board .rec-screen > video.cam-live { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; pointer-events: none; }
 .cam-on #board .rec-screen > .cam-ph { display: none; }
-/* the motion sensors answer: the ring on the trail shows where the phone really is */
-body.gyro #board .trail-you { display: block; }
+/* the arrow set in the room: the guide moves it with the motion sensors, not the design's sample animation */
+.aim-live #board .aim-world, .aim-live #board .aim-arrow { animation: none; }
 /* no sensors for the level yet: no level */
 #board .rec-screen.avv-none .level { display: none; }
 /* the guide's own styles (from the canvas) */
@@ -212,16 +212,20 @@ button.btn-p{border:0;cursor:pointer}
 .ph{margin-top:12px;min-height:84px;border-radius:18px;border-style:dashed;display:grid;place-items:center;align-content:center;gap:4px;text-align:center;padding:10px}
 .stop{position:absolute;left:50%;margin-left:-42px;bottom:40px;width:84px;height:84px;border-radius:50%;border:2px solid #F3EBDD;background:transparent;display:grid;place-items:center;cursor:pointer;transition:transform .25s cubic-bezier(.3,.7,.2,1)}
 .stop:active{transform:scale(.94)}
-/* Follow the arrow: an arc of a circle of radius 260 whose centre is below the box; arrow and ring sit on arms turning
-   around that centre, from -32.6° to +32.6° (the arc's two ends). */
-.trail{position:absolute;left:50%;bottom:196px;width:390px;height:96px;margin-left:-195px;pointer-events:none}
-.trail-arm{position:absolute;left:195px;top:280px;width:0;height:0;transform:rotate(-32.6deg);will-change:transform}
-.trail-arrow,.trail-you{position:absolute;border-radius:50%;box-sizing:border-box}
-.trail-arrow{left:-17px;top:-277px;width:34px;height:34px;background:#D9C29A;box-shadow:0 0 0 5px rgba(217,194,154,.25),0 6px 18px -6px rgba(8,6,3,.7);display:grid;place-items:center}
-.anim .trail-arrow-arm{animation:trail-go var(--rdur,6s) linear both}
-@keyframes trail-go{0%,6%{transform:rotate(-32.6deg)}90%,100%{transform:rotate(32.6deg)}}
-.trail-you{display:none;left:-23px;top:-283px;width:46px;height:46px;border:2.5px solid #F3EBDD;box-shadow:0 0 0 1px rgba(10,8,4,.3),inset 0 0 0 1px rgba(10,8,4,.3)}
-@media (prefers-reduced-motion: reduce){.anim .trail-arrow-arm{animation:none;transform:rotate(32.6deg)}}
+/* Follow the arrow, set in the room: 6 px of screen for each degree turned (about what the 0.5× lens shows across the
+   screen). Line and arrow live in a layer that slides by the degrees turned; the arrow slides on it by the degrees it
+   should be at. Both only move (transform), so the phone draws them without redrawing the page. */
+.aim{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
+.aim-world{position:absolute;left:0;top:0;will-change:transform}
+.aim-line{position:absolute;left:0;top:-1.5px;width:var(--len);height:3px;background:repeating-linear-gradient(90deg,#F3EBDD 0 11px,transparent 11px 23px);filter:drop-shadow(0 0 2px rgba(10,8,4,.7))}
+.aim-end{position:absolute;left:var(--len);top:-10px;width:20px;height:20px;margin-left:-10px;border-radius:50%;border:2.5px solid #D9C29A;box-sizing:border-box;filter:drop-shadow(0 0 2px rgba(10,8,4,.6))}
+.aim-arrow{position:absolute;left:-15px;top:-15px;width:30px;height:30px;border-radius:50%;background:#D9C29A;display:grid;place-items:center;box-shadow:0 0 0 4px rgba(217,194,154,.25),0 4px 14px -4px rgba(8,6,3,.7);will-change:transform}
+.aim-you{position:absolute;left:-24px;top:-24px;width:48px;height:48px;border-radius:50%;border:2.5px solid #F3EBDD;box-sizing:border-box;box-shadow:0 0 0 1px rgba(10,8,4,.35),inset 0 0 0 1px rgba(10,8,4,.35)}
+.anim .aim-world{animation:aim-world var(--rdur,6s) linear both}
+.anim .aim-arrow{animation:aim-arrow var(--rdur,6s) linear both}
+@keyframes aim-world{0%,6%{transform:translateX(0)}90%,100%{transform:translateX(calc(var(--len) * -1))}}
+@keyframes aim-arrow{0%,6%{transform:translateX(0)}90%,100%{transform:translateX(var(--len))}}
+@media (prefers-reduced-motion: reduce){.anim .aim-world,.anim .aim-arrow{animation:none}}
 /* Ready to record: the camera's own red button, with the plan on one side and skipping on the other. */
 .recb{position:absolute;left:50%;margin-left:-42px;bottom:40px;width:84px;height:84px;border-radius:50%;border:3px solid #F3EBDD;background:transparent;display:grid;place-items:center;cursor:pointer;padding:0;transition:transform .25s cubic-bezier(.3,.7,.2,1)}
 .recb span{width:66px;height:66px;border-radius:50%;background:#E0583F}
@@ -895,18 +899,17 @@ button.btn-p{border:0;cursor:pointer}
           <span class="lv" style="position: absolute; right: 22px; width: 64px; height: 2px"></span>
         </div>
       </div>
-      <!-- Follow the arrow (turns only), low on the screen so the picture stays clear: the dashed arc is the whole turn,
-           the arrow travels it at the right pace. In the guide, the ring is where the phone really is: keep it on the arrow.
-           Both move by rotating around the arc's centre, which the phone draws without redrawing the page. -->
+      <!-- Follow the arrow (turns only), set in the room: the dashed line starts where the phone points when the take
+           starts and runs the whole turn; the arrow travels it at the right pace. Turning at that pace keeps the arrow in
+           the ring in the middle. In the guide the motion sensors move line and arrow; here they show the idea. -->
       <sc-if value="{{ rec.isTurn }}" hint-placeholder-val="{{ true }}">
-        <div class="trail" role="img" aria-label="{{ rec.trailText }}" style="--rdur: {{ rec.rdur }}">
-          <svg viewBox="0 0 390 96" width="390" height="96" aria-hidden="true" style="position: absolute; inset: 0; overflow: visible">
-            <path d="M55,61 A260,260 0 0,1 335,61" fill="none" stroke="rgba(10,8,4,.3)" stroke-width="5" stroke-linecap="round" stroke-dasharray="10 12"></path>
-            <path d="M55,61 A260,260 0 0,1 335,61" fill="none" stroke="#F3EBDD" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="10 12" opacity=".9"></path>
-            <circle cx="335" cy="61" r="8" fill="none" stroke="#D9C29A" stroke-width="2.5"></circle>
-          </svg>
-          <span class="trail-arm trail-you-arm"><span class="trail-you"></span></span>
-          <span class="trail-arm trail-arrow-arm"><span class="trail-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17130C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5"></path></svg></span></span>
+        <div class="aim" role="img" aria-label="{{ rec.trailText }}" style="--rdur: {{ rec.rdur }}">
+          <div class="aim-world" style="--len: {{ rec.aimLen }}">
+            <span class="aim-line"></span>
+            <span class="aim-end"></span>
+            <span class="aim-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#17130C" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5"></path></svg></span>
+          </div>
+          <span class="aim-you"></span>
         </div>
       </sc-if>
       <div aria-live="polite" style="position: absolute; left: 0; right: 0; bottom: 210px; height: 44px; display: grid; place-items: center; pointer-events: none">
@@ -1775,7 +1778,7 @@ class Component extends DCLogic {
         avv: AVV[this.props.avviso] || 'auto',
         text: ready ? st.text : st.title + ': ' + (st.kind === 'turn' ? `gira verso destra, ${turnWords(st.arc.gradi)}.` : 'cammina piano, guardando avanti.'),
         passo: `Passo ${sc.i + 1} di ${steps.length}`,
-        trailText: turn ? 'Segui la freccia · ' + turnWords(st.arc.gradi) : '',
+        trailText: turn ? 'Segui la freccia · ' + turnWords(st.arc.gradi) : '', aimLen: (turn ? st.arc.gradi * 6 : 0) + 'px',
         ready, live: !ready, mode: ready ? 'is-ready' : 'is-live', clock: (this.state && this.state.clock) || '0:00',
         hasNote: ready && !!sc.note, note: sc.note || '', canSkip: ready && turn,
         hasRedo: !!prev, redoLabel: prev ? 'Rifai «' + prev.title + '»' : '',
@@ -1837,7 +1840,8 @@ class Component extends DCLogic {
 // apps-script/), while the client goes on with the next step. Where the camera can't be used here, the step is
 // filmed with the Camera app and picked from the gallery, as before. ----
 const PROPS = {"display": "Bodoni Moda", "veil": 0.45, "animazioni": true, "feedbackMax": 300, "avviso": "Automatico"};
-PROPS.avviso = 'Nessuno';   // the canvas shows sample warnings; the guide has no sensors for them yet
+PROPS.avviso = 'Nessuno';
+document.documentElement.classList.add('aim-live');   // the canvas shows sample warnings; the guide has no sensors for them yet
 const CFG = window.GUIDA_CONFIG || {};
 const $ = (s) => document.querySelector(s);
 const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2295,18 +2299,19 @@ function turnBegin(sc) {
   turnEnd();
   const st = stepsOf(sc.key)[sc.i];
   if (st.kind !== 'turn') return;
-  // the arrow reaches the end of the trail at 90% of the step's time (trail-go): 6% still, then 15° a second
-  Object.assign(MOT, { on: true, yaw: 0, last: 0, arc: st.arc.gradi, done: false, t0: Date.now(), arrowMs: st.arc.gradi / 15 / 0.84 * 0.9 * 1000 });
-  youAt(0);
-  // no movement data within a second: no sensors here, the arrow alone guides and a sound marks the end of the turn
+  // the arrow waits a moment where the phone points, then goes at 15° a second to the end of the turn
+  Object.assign(MOT, { on: true, yaw: 0, last: 0, arc: st.arc.gradi, done: false, sim: false, t0: Date.now(), arrowMs: (AIM_WAIT + st.arc.gradi / 15) * 1000 });
+  if (!aimRaf) aimRaf = requestAnimationFrame(aimLoop);
+  // no movement data within a second: no sensors here; the line moves with the arrow (it shows the pace) and a sound
+  // marks the end of the turn
   MOT.check = setTimeout(() => {
-    if (performance.now() - MOT.seen < 1000) { document.body.classList.add('gyro'); return; }
-    MOT.endT = setTimeout(() => { chime(); say('Fatto. Tocca stop.'); }, st.arc.gradi / 15 * 1000 + 600);
+    if (performance.now() - MOT.seen < 1000) return;
+    MOT.sim = true;
+    MOT.endT = setTimeout(() => { chime(); say('Fatto. Tocca stop.'); }, MOT.arrowMs - 1000 + 300);
   }, 1000);
 }
 function turnTick() {
   if (!MOT.arc || MOT.done) return;
-  youAt(Math.min(1, Math.abs(MOT.yaw) / MOT.arc));
   // done only when both are at the end: the phone has turned the whole way (a few degrees of grace) AND the arrow has
   // arrived. Slower than the arrow: it waits for the phone. Faster: it waits for the arrow.
   if (Math.abs(MOT.yaw) >= MOT.arc - 4 && Date.now() - MOT.t0 >= MOT.arrowMs && Date.now() - CAM.t0 > 1500 && CAM.rec) {
@@ -2316,22 +2321,26 @@ function turnTick() {
     setTimeout(() => { if (CAM.rec && comp.cur() === sc) comp.afterRec(sc, true); }, 350);
   }
 }
-// The ring: its own arm turned once a frame at most (the sensors speak 60 times a second; the page is not redrawn).
-let youP = 0, youQ = false;
-function youAt(p) {
-  youP = p;
-  if (youQ) return;
-  youQ = true;
-  requestAnimationFrame(() => {
-    youQ = false;
-    const arm = document.querySelector('#board .trail-you-arm');
-    if (arm) arm.style.transform = `rotate(${(-32.6 + youP * 65.2).toFixed(2)}deg)`;
-  });
+// The arrow set in the room, moved once a frame: the layer with the line slides back by the degrees turned, the
+// arrow slides forward by the degrees it should be at. Only transforms: the page is not redrawn while filming.
+const AIM_K = 6, AIM_WAIT = 0.6;   // px of the guide's screen per degree (as in the design), seconds still at the start
+let aimRaf = 0;
+function aimLoop() {
+  aimRaf = 0;
+  if (!MOT.arc) return;
+  const tgt = Math.min(MOT.arc, Math.max(0, (Date.now() - MOT.t0) / 1000 - AIM_WAIT) * 15);
+  const yaw = MOT.sim ? tgt : Math.min(Math.abs(MOT.yaw), MOT.arc + 30);
+  const w = document.querySelector('#board .aim-world'), a = document.querySelector('#board .aim-arrow');
+  // the arrow never leaves the screen: too far ahead or behind, it waits at the edge on its side
+  const off = Math.max(-165, Math.min(165, (tgt - yaw) * AIM_K));
+  if (w) w.style.transform = `translateX(${(-yaw * AIM_K).toFixed(1)}px)`;
+  if (a) a.style.transform = `translateX(${(yaw * AIM_K + off).toFixed(1)}px)`;
+  aimRaf = requestAnimationFrame(aimLoop);
 }
 function turnEnd() {
   MOT.on = false; MOT.arc = 0;
   clearTimeout(MOT.check); clearTimeout(MOT.endT);
-  document.body.classList.remove('gyro');
+  if (aimRaf) { cancelAnimationFrame(aimRaf); aimRaf = 0; }
 }
 
 // ---------- the voice and the sounds while filming (the microphone is off: they don't end up in the video) ----------

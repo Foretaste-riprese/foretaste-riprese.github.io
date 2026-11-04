@@ -3,7 +3,8 @@
 // apps-script/), while the client goes on with the next step. Where the camera can't be used here, the step is
 // filmed with the Camera app and picked from the gallery, as before. ----
 const PROPS = __PROPS__;
-PROPS.avviso = 'Nessuno';   // the canvas shows sample warnings; the guide has no sensors for them yet
+PROPS.avviso = 'Nessuno';
+document.documentElement.classList.add('aim-live');   // the canvas shows sample warnings; the guide has no sensors for them yet
 const CFG = window.GUIDA_CONFIG || {};
 const $ = (s) => document.querySelector(s);
 const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -430,18 +431,19 @@ function turnBegin(sc) {
   turnEnd();
   const st = stepsOf(sc.key)[sc.i];
   if (st.kind !== 'turn') return;
-  // the arrow reaches the end of the trail at 90% of the step's time (trail-go): 6% still, then 15° a second
-  Object.assign(MOT, { on: true, yaw: 0, last: 0, arc: st.arc.gradi, done: false, t0: Date.now(), arrowMs: st.arc.gradi / 15 / 0.84 * 0.9 * 1000 });
-  youAt(0);
-  // no movement data within a second: no sensors here, the arrow alone guides and a sound marks the end of the turn
+  // the arrow waits a moment where the phone points, then goes at 15° a second to the end of the turn
+  Object.assign(MOT, { on: true, yaw: 0, last: 0, arc: st.arc.gradi, done: false, sim: false, t0: Date.now(), arrowMs: (AIM_WAIT + st.arc.gradi / 15) * 1000 });
+  if (!aimRaf) aimRaf = requestAnimationFrame(aimLoop);
+  // no movement data within a second: no sensors here; the line moves with the arrow (it shows the pace) and a sound
+  // marks the end of the turn
   MOT.check = setTimeout(() => {
-    if (performance.now() - MOT.seen < 1000) { document.body.classList.add('gyro'); return; }
-    MOT.endT = setTimeout(() => { chime(); say('Fatto. Tocca stop.'); }, st.arc.gradi / 15 * 1000 + 600);
+    if (performance.now() - MOT.seen < 1000) return;
+    MOT.sim = true;
+    MOT.endT = setTimeout(() => { chime(); say('Fatto. Tocca stop.'); }, MOT.arrowMs - 1000 + 300);
   }, 1000);
 }
 function turnTick() {
   if (!MOT.arc || MOT.done) return;
-  youAt(Math.min(1, Math.abs(MOT.yaw) / MOT.arc));
   // done only when both are at the end: the phone has turned the whole way (a few degrees of grace) AND the arrow has
   // arrived. Slower than the arrow: it waits for the phone. Faster: it waits for the arrow.
   if (Math.abs(MOT.yaw) >= MOT.arc - 4 && Date.now() - MOT.t0 >= MOT.arrowMs && Date.now() - CAM.t0 > 1500 && CAM.rec) {
@@ -451,22 +453,26 @@ function turnTick() {
     setTimeout(() => { if (CAM.rec && comp.cur() === sc) comp.afterRec(sc, true); }, 350);
   }
 }
-// The ring: its own arm turned once a frame at most (the sensors speak 60 times a second; the page is not redrawn).
-let youP = 0, youQ = false;
-function youAt(p) {
-  youP = p;
-  if (youQ) return;
-  youQ = true;
-  requestAnimationFrame(() => {
-    youQ = false;
-    const arm = document.querySelector('#board .trail-you-arm');
-    if (arm) arm.style.transform = `rotate(${(-32.6 + youP * 65.2).toFixed(2)}deg)`;
-  });
+// The arrow set in the room, moved once a frame: the layer with the line slides back by the degrees turned, the
+// arrow slides forward by the degrees it should be at. Only transforms: the page is not redrawn while filming.
+const AIM_K = 6, AIM_WAIT = 0.6;   // px of the guide's screen per degree (as in the design), seconds still at the start
+let aimRaf = 0;
+function aimLoop() {
+  aimRaf = 0;
+  if (!MOT.arc) return;
+  const tgt = Math.min(MOT.arc, Math.max(0, (Date.now() - MOT.t0) / 1000 - AIM_WAIT) * 15);
+  const yaw = MOT.sim ? tgt : Math.min(Math.abs(MOT.yaw), MOT.arc + 30);
+  const w = document.querySelector('#board .aim-world'), a = document.querySelector('#board .aim-arrow');
+  // the arrow never leaves the screen: too far ahead or behind, it waits at the edge on its side
+  const off = Math.max(-165, Math.min(165, (tgt - yaw) * AIM_K));
+  if (w) w.style.transform = `translateX(${(-yaw * AIM_K).toFixed(1)}px)`;
+  if (a) a.style.transform = `translateX(${(yaw * AIM_K + off).toFixed(1)}px)`;
+  aimRaf = requestAnimationFrame(aimLoop);
 }
 function turnEnd() {
   MOT.on = false; MOT.arc = 0;
   clearTimeout(MOT.check); clearTimeout(MOT.endT);
-  document.body.classList.remove('gyro');
+  if (aimRaf) { cancelAnimationFrame(aimRaf); aimRaf = 0; }
 }
 
 // ---------- the voice and the sounds while filming (the microphone is off: they don't end up in the video) ----------

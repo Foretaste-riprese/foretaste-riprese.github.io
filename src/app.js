@@ -221,6 +221,18 @@ function drawRec(err) {
     ${CFG.scriptUrl ? '' : '<p class="o-err">L’invio dei video non è ancora collegato: per ora la guida va solo avanti.</p>'}
     <div class="o-row"><button type="button" class="o-btn p" data-a="pick">Scegli il video</button></div>`);
 }
+// The property's address, when the link doesn't carry it: asked once, before the first take, so every video lands in
+// the right folder (without it they would go to «Senza nome»).
+let afterCasa = null;
+function askCasa(then, err) {
+  afterCasa = then;
+  sheet(`<div class="o-top"><div style="display: flex; flex-direction: column; gap: 8px"><span class="o-lab">Prima di iniziare</span><h2 class="o-h" id="ov-title">Di che <em>casa</em> si tratta?</h2></div></div>
+    <p class="o-p">Serve per mettere i video nella cartella giusta. Lo chiediamo una volta sola.</p>
+    <div style="display: flex; flex-direction: column; gap: 8px"><label class="o-lab" for="ov-casa" style="color: var(--soft)">Indirizzo dell’immobile</label><input class="o-in" id="ov-casa" autocomplete="street-address" enterkeyhint="done" placeholder="Es. Via Roma 12, Bologna"></div>
+    ${err ? `<p class="o-err">${esc(err)}</p>` : ''}
+    <div class="o-row"><button type="button" class="o-btn p" data-a="casa">Avanti</button></div>`);
+  setTimeout(() => { const c = $('#ov-casa'); if (c) c.focus(); }, 350);
+}
 // The end: no uploading to do, only to wait for the videos still travelling.
 function drawEnd() {
   const p = pending();
@@ -244,14 +256,26 @@ $('#sheet').addEventListener('click', (e) => {
   const a = b.dataset.a;
   if (a === 'close') closeSheet();
   if (a === 'restart') { closeSheet(); if (comp) comp.enter({ type: 'setup', i: 0 }, []); }
+  if (a === 'casa') {
+    const c = $('#ov-casa'), v = c ? c.value.trim() : '';
+    if (!v) { askCasa(afterCasa, 'Scrivi l’indirizzo: senza, non sappiamo di che casa sono i video.'); return; }
+    setCasa(v);
+    const then = afterCasa; afterCasa = null;
+    closeSheet();
+    if (then) then();   // still inside the tap: the phone can ask for its permissions
+    return;
+  }
   if (a === 'pick') {
     const c = $('#ov-casa');
     if (c) { if (!c.value.trim()) { drawRec('Scrivi l’indirizzo dell’immobile: serve per sapere di che casa sono i video.'); return; } setCasa(c.value); }
     $('#gal').value = ''; $('#gal').click();
   }
 });
-$('#ov').addEventListener('click', (e) => { if (e.target === $('#ov')) closeSheet(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#ov').hidden) closeSheet(); });
+$('#ov').addEventListener('click', (e) => { if (e.target === $('#ov') && afterCasa === null) closeSheet(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target && e.target.id === 'ov-casa' && afterCasa !== null) { e.preventDefault(); $('#sheet [data-a="casa"]').click(); return; }
+  if (e.key === 'Escape' && !$('#ov').hidden && afterCasa === null) closeSheet();
+});
 
 // ---------- the camera inside the guide ----------
 // The phone's own camera, opened by the page: the 0.5× lens in 4K at 30 fps, kept on from one step to the next, so
@@ -564,6 +588,7 @@ Component.prototype.enter = function (screen, h) {
   if (CAM.rec && !(screen && screen.type === 'rec' && !screen.ready && screen.key === was.key && screen.i === was.i)) recCancel();
   _enter.call(this, screen, h);
   saveState();
+  if (screen && screen.type === 'rec' && !casa() && $('#ov').hidden) askCasa(() => {});
   if (!(screen && screen.type === 'rec' && !screen.ready) && window.speechSynthesis) speechSynthesis.cancel();
   sayFor(screen);
   queueMicrotask(() => requestAnimationFrame(camSync));
@@ -587,6 +612,7 @@ Component.prototype.afterRec = function (sc, recorded) {
 // The permission screen: the phone asks for the camera (and, on the iPhone, the motion sensors) once, here.
 const _allow = Component.prototype.allowCamera;
 Component.prototype.allowCamera = function () {
+  if (!casa()) { askCasa(() => this.allowCamera()); return; }
   const go = () => _allow.call(this);
   motionAsk(); audioUnlock();
   if (!camUsable()) return go();

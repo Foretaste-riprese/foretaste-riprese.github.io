@@ -396,8 +396,12 @@ button.btn-p{border:0;cursor:pointer}
           <span style="display: flex; flex-direction: column; gap: 6px"><span class="dsp" style="font-size: 26px; line-height: 1">Scalinata</span><span class="lab" style="font-size: 9px; color: rgba(243,235,221,.85)">Scale di ogni forma</span></span>
         </button>
         </div>
-        <nav style="margin-top: auto; display: flex; gap: 10px">
-          <button type="button" data-suono="4" class="gl free btn" style="--d: 590ms; flex: 1" onClick="{{ space.finish }}">Ho finito la casa</button>
+        <nav style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+          <!-- Just finished a space: its last take can be done again, as with Rifai on the camera screen. -->
+          <sc-if value="{{ space.hasRedo }}" hint-placeholder-val="{{ false }}">
+            <button type="button" class="gl free btn" style="--d: 560ms; display: flex; align-items: center; justify-content: center; gap: 8px" onClick="{{ space.redo }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"></path><path d="M4.5 4.5v4h4"></path></svg><span>{{ space.redoLabel }}</span></button>
+          </sc-if>
+          <button type="button" data-suono="4" class="gl free btn" style="--d: 590ms" onClick="{{ space.finish }}">Ho finito la casa</button>
         </nav>
       </main>
     </sc-if>
@@ -1456,14 +1460,14 @@ class Component extends DCLogic {
   nextStep(sc) {
     const n = stepsOf(sc.key).length;
     if (sc.i + 1 < n) this.go({ type: 'step', key: sc.key, i: sc.i + 1 });
-    else this.enter({ type: 'space', fatto: sc.key }, []);
+    else this.enter({ type: 'space', fatto: sc.key, last: sc.i }, []);
   }
   // After a take (or a skipped point) the camera stays on and shows the next step, ready: one tap to record it.
   // The history stays the one of the step screens, so Pianta and Indietro work as before.
   afterRec(sc, recorded) {
     const n = stepsOf(sc.key).length, h = this.hist().concat([{ type: 'step', key: sc.key, i: sc.i }]);
     if (sc.i + 1 < n) this.enter({ type: 'rec', key: sc.key, i: sc.i + 1, ready: true, guide: true, prev: recorded ? sc.i : null }, h);
-    else this.enter({ type: 'space', fatto: sc.key }, []);   // the space is done: straight to the next one
+    else this.enter({ type: 'space', fatto: sc.key, last: sc.i }, []);   // the space is done: straight to the next one (its last take can be done again from there)
   }
   // The permission screen: in the canvas it only moves on; the guide asks the phone for camera and microphone here.
   allowCamera() { this.go({ type: 'space' }); }
@@ -1503,7 +1507,9 @@ class Component extends DCLogic {
       space: {
         ambiente: () => this.go({ type: 'rec', key: 'rettangolare', i: 0, ready: true, guide: true }), corridoio: () => this.go({ type: 'rec', key: 'corridoio', i: 0, ready: true, guide: true }),
         scala: () => this.go({ type: 'pick', group: 'stairs' }), finish: () => this.go({ type: 'end' }),
-        crumb: sc.fatto ? 'Spazio finito · scegli il prossimo' : 'Scegli lo spazio'
+        crumb: sc.fatto ? 'Spazio finito · scegli il prossimo' : 'Scegli lo spazio',
+        hasRedo: !!sc.fatto && sc.last != null, redoLabel: sc.fatto && sc.last != null ? 'Rifai «' + stepsOf(sc.fatto)[sc.last].title + '»' : '',
+        redo: () => this.enter({ type: 'rec', key: sc.fatto, i: sc.last, ready: true, guide: true }, [{ type: 'space' }])
       },
       done: { another: () => this.enter({ type: 'space' }, []), finish: () => this.go({ type: 'end' }) },
       end: { restart: () => this.enter({ type: 'setup', i: 0 }, []) }

@@ -664,8 +664,12 @@ SCREENS = f'''<sc-if value="{{{{ isSetup }}}}" hint-placeholder-val="{{{{ true }
 {tile("corridoio", "Corridoio", "Collegamenti tra gli spazi", 510)}
 {tile("scala", "Scalinata", "Scale di ogni forma", 570)}
         </div>
-        <nav style="margin-top: auto; display: flex; gap: 10px">
-          <button type="button" data-suono="4" class="gl free btn" style="--d: 590ms; flex: 1" onClick="{{{{ space.finish }}}}">Ho finito la casa</button>
+        <nav style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+          <!-- Just finished a space: its last take can be done again, as with Rifai on the camera screen. -->
+          <sc-if value="{{{{ space.hasRedo }}}}" hint-placeholder-val="{{{{ false }}}}">
+            <button type="button" class="gl free btn" style="--d: 560ms; display: flex; align-items: center; justify-content: center; gap: 8px" onClick="{{{{ space.redo }}}}">{REDO}<span>{{{{ space.redoLabel }}}}</span></button>
+          </sc-if>
+          <button type="button" data-suono="4" class="gl free btn" style="--d: 590ms" onClick="{{{{ space.finish }}}}">Ho finito la casa</button>
         </nav>
       </main>
     </sc-if>
@@ -1242,14 +1246,14 @@ FLOW_METHODS = r"""  // ---- Navigation: one artboard holds the whole flow; hist
   nextStep(sc) {
     const n = stepsOf(sc.key).length;
     if (sc.i + 1 < n) this.go({ type: 'step', key: sc.key, i: sc.i + 1 });
-    else this.enter({ type: 'space', fatto: sc.key }, []);
+    else this.enter({ type: 'space', fatto: sc.key, last: sc.i }, []);
   }
   // After a take (or a skipped point) the camera stays on and shows the next step, ready: one tap to record it.
   // The history stays the one of the step screens, so Pianta and Indietro work as before.
   afterRec(sc, recorded) {
     const n = stepsOf(sc.key).length, h = this.hist().concat([{ type: 'step', key: sc.key, i: sc.i }]);
     if (sc.i + 1 < n) this.enter({ type: 'rec', key: sc.key, i: sc.i + 1, ready: true, guide: true, prev: recorded ? sc.i : null }, h);
-    else this.enter({ type: 'space', fatto: sc.key }, []);   // the space is done: straight to the next one
+    else this.enter({ type: 'space', fatto: sc.key, last: sc.i }, []);   // the space is done: straight to the next one (its last take can be done again from there)
   }
   // The permission screen: in the canvas it only moves on; the guide asks the phone for camera and microphone here.
   allowCamera() { this.go({ type: 'space' }); }
@@ -1289,7 +1293,9 @@ FLOW_METHODS = r"""  // ---- Navigation: one artboard holds the whole flow; hist
       space: {
         ambiente: () => this.go({ type: 'rec', key: 'rettangolare', i: 0, ready: true, guide: true }), corridoio: () => this.go({ type: 'rec', key: 'corridoio', i: 0, ready: true, guide: true }),
         scala: () => this.go({ type: 'pick', group: 'stairs' }), finish: () => this.go({ type: 'end' }),
-        crumb: sc.fatto ? 'Spazio finito · scegli il prossimo' : 'Scegli lo spazio'
+        crumb: sc.fatto ? 'Spazio finito · scegli il prossimo' : 'Scegli lo spazio',
+        hasRedo: !!sc.fatto && sc.last != null, redoLabel: sc.fatto && sc.last != null ? 'Rifai «' + stepsOf(sc.fatto)[sc.last].title + '»' : '',
+        redo: () => this.enter({ type: 'rec', key: sc.fatto, i: sc.last, ready: true, guide: true }, [{ type: 'space' }])
       },
       done: { another: () => this.enter({ type: 'space' }, []), finish: () => this.go({ type: 'end' }) },
       end: { restart: () => this.enter({ type: 'setup', i: 0 }, []) }

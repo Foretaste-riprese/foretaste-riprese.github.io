@@ -120,7 +120,9 @@ async function sendOne(it) {
     if (it.sent >= size) break;
     if (!res) throw new Error('connessione');
     const rg = res.headers.get('Range');
+    const before = it.sent;
     it.sent = res.ok ? size : rg ? Number(rg.split('-')[1]) + 1 : end;
+    speedAdd(it.sent - before);
     STORE.save(it).catch(() => {});
     status();
   }
@@ -153,6 +155,21 @@ async function awake() {
     } else if (!on && lock) { const l = lock; lock = null; await l.release(); }
   } catch (_) {}
 }
+// How fast the videos travel (the last 30 seconds of pieces), to tell the client how long is left.
+const SPEED = [];
+function speedAdd(bytes) {
+  const now = Date.now();
+  if (bytes > 0) SPEED.push([now, bytes]);
+  while (SPEED.length && now - SPEED[0][0] > 30000) SPEED.shift();
+}
+function timeLeft(bytes) {
+  speedAdd(0);
+  if (SPEED.length < 2) return '';
+  const span = (Date.now() - SPEED[0][0]) / 1000, sum = SPEED.reduce((a, x) => a + x[1], 0);
+  if (span < 4 || !sum) return '';
+  const s = bytes / (sum / span);
+  return s < 60 ? ' · meno di un minuto' : ` · ancora ${Math.round(s / 60)} min`;
+}
 let hideT = null;
 function status(trouble) {
   const el = $('#send'), p = pending();
@@ -162,7 +179,7 @@ function status(trouble) {
   if (!p.length) { $('#send-t').textContent = Q.length === 1 ? 'Video arrivato' : `Tutti i ${Q.length} video sono arrivati`; hideT = setTimeout(() => { el.hidden = true; document.body.classList.remove('sending'); }, 6000); applyUpdate(); return; }
   const tot = p.reduce((a, x) => a + x.size, 0), done = p.reduce((a, x) => a + x.sent, 0);
   const pct = tot ? Math.floor(done / tot * 100) : 0;
-  $('#send-t').textContent = !navigator.onLine ? 'Invio in pausa: manca la connessione' : `Invio ${p.length === 1 ? 'del video' : `di ${p.length} video`} · ${pct}%`;
+  $('#send-t').textContent = !navigator.onLine ? 'Invio in pausa: manca la connessione' : `Invio ${p.length === 1 ? 'del video' : `di ${p.length} video`} · ${pct}%${timeLeft(tot - done)}`;
 }
 function enqueue(file, sc) {
   const steps = stepsOf(sc.key), st = steps[sc.i], ext = (file.name.match(/\.\w+$/) || ['.mp4'])[0].toLowerCase();
@@ -282,11 +299,14 @@ document.addEventListener('keydown', (e) => {
 // each step is just: go to the point, press the red button, film, press stop. No app to switch to, no gallery,
 // no waiting: the take goes straight into the sending queue. The camera is on only on the recording screen.
 const CAM = { stream: null, opening: null, video: null, rec: null, t0: 0, tick: null, sc: null, failed: '', errors: 0 };
-const BITRATE = 30e6;   // 30 Mbit/s: close to the Camera app in 4K, and a minute of video is about 225 MB
+// Lighter videos, same frames: HEVC (the Camera app's own format, about half the size for the same picture) where
+// the phone lets the page record it; otherwise H.264 at 20 Mbit/s (30 made sending too slow: 7 minutes for 3 videos).
 const MIME = (() => {
   if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
-  return ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+  return ['video/mp4;codecs=hvc1', 'video/mp4;codecs=hev1', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
 })();
+const HEVC = /hvc1|hev1/.test(MIME);
+const BITRATE = HEVC ? 14e6 : 20e6;   // a minute of video: about 105 MB in HEVC, 150 MB in H.264
 const camUsable = () => !CAM.failed && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
 const camWanted = () => !!comp && !document.hidden && (comp.cur().type === 'rec' || (comp.cur().type === 'step' && CAM.granted));
 function camFail(e, where) {
@@ -386,10 +406,20 @@ function recStop(keep) {
     if (!keep) return;
     const type = (r.mimeType || MIME || 'video/mp4').split(';')[0], ext = /webm/.test(type) ? '.webm' : '.mp4';
     const blob = new Blob(chunks, { type });
-    if (!blob.size) { report('Registrazione vuota', `${type} · ${clock(ms)}`); return; }
+    if (!blob.size) { report('Registrazione vuota', `${type} · ${clock(ms)}`); takeAgain(sc); return; }
     if (CFG.scriptUrl) enqueue(new File([blob], 'ripresa' + ext, { type }), sc);
   };
   try { r.stop(); } catch (_) {}
+}
+// A take that came out empty: back to that step, ready to film it again (unless the client is already filming the next)
+function takeAgain(sc) {
+  if (!comp || CAM.rec) return;
+  const cur = comp.cur();
+  let h = comp.hist();
+  if (cur.type === 'rec' && cur.key === sc.key && cur.i === sc.i + 1) h = h.slice(0, -1);
+  else if (cur.type === 'space' && cur.fatto === sc.key) h = [{ type: 'space' }];
+  else return;
+  comp.enter({ type: 'rec', key: sc.key, i: sc.i, ready: true, guide: true, note: 'La ripresa non è venuta: rifalla.' }, h);
 }
 function recCancel() { if (CAM.rec) recStop(false); }
 // The take could not go on (the page was left, the camera was taken away): this step is ready to be filmed again.

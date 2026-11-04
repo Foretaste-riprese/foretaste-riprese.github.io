@@ -612,11 +612,7 @@ SCREENS = f'''<sc-if value="{{{{ isSetup }}}}" hint-placeholder-val="{{{{ true }
             <div class="lg-c">
               <div class="irow">
                 <span class="irow-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"></path><circle cx="12" cy="13.5" r="3.5"></circle></svg></span>
-                <span style="display: flex; flex-direction: column; gap: 4px"><span class="irow-t">Fotocamera</span><span class="irow-p">Per riprendere gli spazi con la lente 0,5×.</span></span>
-              </div>
-              <div class="irow">
-                <span class="irow-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg></span>
-                <span style="display: flex; flex-direction: column; gap: 4px"><span class="irow-t">Microfono</span><span class="irow-p">Il telefono lo chiede insieme al video. Mentre registri la musica tace.</span></span>
+                <span style="display: flex; flex-direction: column; gap: 4px"><span class="irow-t">Fotocamera</span><span class="irow-p">Per riprendere gli spazi con la lente 0,5×. Solo le immagini: il microfono resta spento.</span></span>
               </div>
             </div>
           </section>

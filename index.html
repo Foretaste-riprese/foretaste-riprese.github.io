@@ -17,7 +17,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="it_IT">
 <meta name="twitter:card" content="summary_large_image">
-<script>window.GUIDA_BUILD = 'cc569ebbfd';</script>
+<script>window.GUIDA_BUILD = '0adc5c33f2';</script>
 <script src="config.js?v=0c99e2d2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
@@ -430,11 +430,7 @@ button.btn-p{border:0;cursor:pointer}
             <div class="lg-c">
               <div class="irow">
                 <span class="irow-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"></path><circle cx="12" cy="13.5" r="3.5"></circle></svg></span>
-                <span style="display: flex; flex-direction: column; gap: 4px"><span class="irow-t">Fotocamera</span><span class="irow-p">Per riprendere gli spazi con la lente 0,5×.</span></span>
-              </div>
-              <div class="irow">
-                <span class="irow-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg></span>
-                <span style="display: flex; flex-direction: column; gap: 4px"><span class="irow-t">Microfono</span><span class="irow-p">Il telefono lo chiede insieme al video. Mentre registri la musica tace.</span></span>
+                <span style="display: flex; flex-direction: column; gap: 4px"><span class="irow-t">Fotocamera</span><span class="irow-p">Per riprendere gli spazi con la lente 0,5×. Solo le immagini: il microfono resta spento.</span></span>
               </div>
             </div>
           </section>
@@ -2120,7 +2116,7 @@ const CAM = { stream: null, opening: null, video: null, rec: null, chunks: [], t
 const BITRATE = 30e6;   // 30 Mbit/s: close to the Camera app in 4K, and a minute of video is about 225 MB
 const MIME = (() => {
   if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
-  return ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+  return ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
 })();
 const camUsable = () => !CAM.failed && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
 const camWanted = () => !!comp && !document.hidden && comp.cur().type === 'rec';
@@ -2133,7 +2129,7 @@ function camFail(e, where) {
 async function camStream() {
   const want = (id) => navigator.mediaDevices.getUserMedia({
     video: Object.assign({ width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 30 } }, id ? { deviceId: { exact: id } } : { facingMode: { ideal: 'environment' } }),
-    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    audio: false   // only the pictures: the frames are what counts, and the phone asks for the camera alone
   });
   const known = lsGet('guida-lente');
   let s;
@@ -2194,7 +2190,7 @@ function clock(ms) { const t = Math.floor(ms / 1000); return Math.floor(t / 60) 
 function recStart(sc) {
   if (CAM.rec || !CAM.stream) return;
   let r;
-  try { r = new MediaRecorder(CAM.stream, Object.assign({ videoBitsPerSecond: BITRATE, audioBitsPerSecond: 128000 }, MIME ? { mimeType: MIME } : {})); }
+  try { r = new MediaRecorder(CAM.stream, Object.assign({ videoBitsPerSecond: BITRATE }, MIME ? { mimeType: MIME } : {})); }
   catch (e) { camFail(e, 'registrazione'); CAM.failed = CAM.failed || 'MediaRecorder'; camClose(); toCameraApp(sc); return; }
   CAM.rec = r; CAM.sc = sc; CAM.chunks = [];
   r.ondataavailable = (e) => { if (e.data && e.data.size) CAM.chunks.push(e.data); };

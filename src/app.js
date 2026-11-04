@@ -260,7 +260,7 @@ const CAM = { stream: null, opening: null, video: null, rec: null, chunks: [], t
 const BITRATE = 30e6;   // 30 Mbit/s: close to the Camera app in 4K, and a minute of video is about 225 MB
 const MIME = (() => {
   if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
-  return ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+  return ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
 })();
 const camUsable = () => !CAM.failed && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
 const camWanted = () => !!comp && !document.hidden && comp.cur().type === 'rec';
@@ -273,7 +273,7 @@ function camFail(e, where) {
 async function camStream() {
   const want = (id) => navigator.mediaDevices.getUserMedia({
     video: Object.assign({ width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 30 } }, id ? { deviceId: { exact: id } } : { facingMode: { ideal: 'environment' } }),
-    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    audio: false   // only the pictures: the frames are what counts, and the phone asks for the camera alone
   });
   const known = lsGet('guida-lente');
   let s;
@@ -334,7 +334,7 @@ function clock(ms) { const t = Math.floor(ms / 1000); return Math.floor(t / 60) 
 function recStart(sc) {
   if (CAM.rec || !CAM.stream) return;
   let r;
-  try { r = new MediaRecorder(CAM.stream, Object.assign({ videoBitsPerSecond: BITRATE, audioBitsPerSecond: 128000 }, MIME ? { mimeType: MIME } : {})); }
+  try { r = new MediaRecorder(CAM.stream, Object.assign({ videoBitsPerSecond: BITRATE }, MIME ? { mimeType: MIME } : {})); }
   catch (e) { camFail(e, 'registrazione'); CAM.failed = CAM.failed || 'MediaRecorder'; camClose(); toCameraApp(sc); return; }
   CAM.rec = r; CAM.sc = sc; CAM.chunks = [];
   r.ondataavailable = (e) => { if (e.data && e.data.size) CAM.chunks.push(e.data); };

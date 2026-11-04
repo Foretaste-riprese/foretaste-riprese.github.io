@@ -294,7 +294,7 @@ function note() {
   const show = (t, cls) => { el.hidden = false; el.className = 'send ' + (cls || ''); $('#send-t').textContent = t; document.body.classList.add('sending'); };
   const hide = () => { el.hidden = true; document.body.classList.remove('sending'); };
   if (!CFG.scriptUrl) return hide();
-  if (sendErr && (dirty || inFlight)) return show(navigator.onLine === false ? 'Senza connessione: le risposte restano sul telefono' : 'Nuovo tentativo di invio…', 'err');
+  if (sendErr && (dirty || inFlight) && navigator.onLine === false) return show('Senza connessione: le risposte restano sul telefono', 'err');
   if (inFlight && (c === 'review' || c === 'thanks')) return show('Invio delle risposte…');
   if (!dirty && !inFlight && lastOk && Date.now() - lastOk < 2500) { show('Risposte salvate', 'ok'); hideT = setTimeout(hide, 2200); return; }
   hide();
@@ -464,6 +464,12 @@ document.addEventListener('visibilitychange', () => {
 
 // ---------- dictation: the phone's own speech recognition writes into the answer (Safari on iPhone, Chrome) ----------
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+// On iPhone only Safari lets a page use dictation: Chrome, Firefox, Google and the apps' own browsers refuse it, and
+// once refused on a phone the page remembers it. There the keyboard's own microphone is suggested instead.
+const UA = navigator.userAgent || '';
+const IOS_OTHER = /iP(hone|ad|od)/.test(UA) && /CriOS|FxiOS|EdgiOS|OPiOS|GSA\/|FBAN|FBAV|Instagram|Line\/|WhatsApp/.test(UA);
+let SR_OK = !!SR && !IOS_OTHER && (() => { try { return localStorage.getItem('questionario-dettatura') !== 'no'; } catch (_) { return true; } })();
+const micTip = () => `<span class="mic-tip">${MIC}<span>Per dettare, tocca il microfono della tastiera, in basso.</span></span>`;
 const MIC = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg>';
 let rec = null, recWant = false;
 const dictating = () => !!rec;
@@ -478,6 +484,13 @@ function setAnswer(v) {
   const ta = $('#ans'), c = cur(); if (!ta || c.t !== 'q') return;
   ta.value = v; S.a[c.n] = v; save(); grow(ta); count(ta);
   const nb = $('#next'); if (nb) nb.textContent = nextLabel(v);
+}
+// the page can't use the microphone here: the button gives way to the keyboard's microphone, for good on this phone
+function micFallback(msg) {
+  SR_OK = false;
+  try { localStorage.setItem('questionario-dettatura', 'no'); } catch (_) {}
+  const b = $('.mic'); if (b) b.outerHTML = micTip();
+  micMsg(msg || '');
 }
 function micMsg(t) { const m = $('#mic-msg'); if (!m) return; m.hidden = !t; m.textContent = t || ''; }
 function drawMic() {
@@ -501,23 +514,29 @@ function dictStart() {
     for (let i = 0; i < e.results.length; i++) said += (said ? ' ' : '') + e.results[i][0].transcript.trim();
     setAnswer(joinText(base, said));
   };
+  // every error ends the listening at once: some browsers never send the end after an error
   r.onerror = (e) => {
     const k = e && e.error;
-    if (k === 'not-allowed' || k === 'service-not-allowed') micMsg('Il telefono non ha dato il permesso. Su iPhone: Impostazioni › Generali › Tastiera › attiva «Dettatura», poi riprova e tocca «Consenti».');
+    dictEnd(r);
+    if (k === 'not-allowed' || k === 'service-not-allowed') micFallback('Questo browser non permette al sito di usare il microfono.');
     else if (k === 'no-speech') micMsg('Non ho sentito nulla: riprova, parlando vicino al telefono.');
     else if (k === 'network') micMsg('Per dettare serve la connessione a internet.');
     else if (k !== 'aborted') micMsg('La dettatura si è fermata: tocca di nuovo «Detta la risposta».');
   };
-  r.onend = () => {
-    rec = null; recWant = false; drawMic();
-    clearTimeout(window.__qSend); window.__qSend = setTimeout(queueSend, 1500);
-    if (SND.dictPaused && SND.musicOn()) SND.start(SND.shared().time);
-    SND.dictPaused = false;
-  };
-  try { r.start(); rec = r; recWant = true; } catch (_) { micMsg('La dettatura non è partita: riprova tra un attimo.'); }
+  r.onend = () => dictEnd(r);
+  try { r.start(); rec = r; recWant = true; } catch (_) { dictEnd(null); micFallback('La dettatura del sito non è partita su questo telefono.'); return; }
   drawMic();
 }
-function dictStop() { if (rec) { try { rec.stop(); } catch (_) { rec = null; } } }
+// the end of listening, whoever calls it first (the tap, the error, the browser): once only
+function dictEnd(r) {
+  if (r && r !== rec) return;
+  rec = null; recWant = false; drawMic();
+  clearTimeout(window.__qSend); window.__qSend = setTimeout(queueSend, 1500);
+  if (SND.dictPaused && SND.musicOn()) SND.start(SND.shared().time);
+  SND.dictPaused = false;
+}
+// the tap on «tocca per finire» always ends it, at once, even if the browser stays silent
+function dictStop() { const r = rec; if (!r) return; try { r.stop(); } catch (_) {} dictEnd(r); }
 
 // ---------- screens ----------
 const cur = () => SEQ[Math.max(0, Math.min(SEQ.length - 1, S.idx))];
@@ -562,7 +581,7 @@ function viewIntro() {
       <h2 class="lab" style="margin: 0 0 6px; color: rgba(243,235,221,.82)">Come funziona</h2>
       <ol style="list-style: none; margin: 0; padding: 0">
         <li class="li-row"><span class="li-n">i.</span><span>${QS.length} domande in ${PARTS.length} parti, una alla volta. Circa 20 minuti.</span></li>
-        <li class="li-row"><span class="li-n">ii.</span><span>Scrivi con parole tue, oppure tocca <strong>Detta la risposta</strong> e parla: il testo si scrive da solo.</span></li>
+        <li class="li-row"><span class="li-n">ii.</span><span>${SR_OK ? 'Scrivi con parole tue, oppure tocca <strong>Detta la risposta</strong> e parla: il testo si scrive da solo.' : 'Scrivi con parole tue, oppure detta con il microfono della tastiera, in basso.'}</span></li>
         <li class="li-row"><span class="li-n">iii.</span><span>Le risposte si salvano mentre scrivi: puoi fermarti e riprendere quando vuoi.</span></li>
       </ol>
     </section>
@@ -596,8 +615,8 @@ function viewQ(n) {
     ${q.h ? `<div class="posa" style="--d: 360ms"><p class="hint" data-suono="3">${esc(q.h)}</p></div>` : ''}
     <div class="free" data-suono="4" style="--d: 480ms; margin-top: 22px">
       <textarea class="gl answer" id="ans" aria-labelledby="q-t" placeholder="${esc(q.p || 'Scrivi qui, con parole tue')}" maxlength="5000">${esc(v)}</textarea>
-      <div class="under">${SR ? `<button type="button" class="gl mic" data-a="mic" aria-pressed="false">${MIC}<span id="mic-t">Detta la risposta</span></button>`
-        : `<span class="mic-tip">${MIC}<span>Per dettare, tocca il microfono della tastiera, in basso.</span></span>`}<span id="cnt"></span></div>
+      <div class="under">${SR_OK ? `<button type="button" class="gl mic" data-a="mic" aria-pressed="false">${MIC}<span id="mic-t">Detta la risposta</span></button>`
+        : micTip()}<span id="cnt"></span></div>
       <p class="mic-msg" id="mic-msg" hidden></p>
     </div>
     <nav>${backBtn(710)}${nextBtn(760, nextLabel(v), 'id="next"')}</nav>

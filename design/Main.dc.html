@@ -117,16 +117,16 @@ button.btn-p{border:0;cursor:pointer}
 .ph{margin-top:12px;min-height:84px;border-radius:18px;border-style:dashed;display:grid;place-items:center;align-content:center;gap:4px;text-align:center;padding:10px}
 .stop{position:absolute;left:50%;margin-left:-42px;bottom:40px;width:84px;height:84px;border-radius:50%;border:2px solid #F3EBDD;background:transparent;display:grid;place-items:center;cursor:pointer;transition:transform .25s cubic-bezier(.3,.7,.2,1)}
 .stop:active{transform:scale(.94)}
-/* Follow the arrow */
-.trail{position:absolute;left:50%;top:0;width:390px;height:200px;margin-left:-195px}
-.trail-arrow,.trail-you{position:absolute;left:0;top:0;offset-rotate:auto;offset-distance:0%;border-radius:50%}
-.trail-arrow{width:46px;height:46px;background:#D9C29A;box-shadow:0 0 0 6px rgba(217,194,154,.28),0 8px 24px -6px rgba(8,6,3,.7);display:grid;place-items:center}
-.anim .trail-arrow{animation:trail-go var(--rdur,6s) linear both}
-.anim .trail.walk .trail-arrow{animation-duration:var(--wdur,4s)}
-@keyframes trail-go{0%,6%{offset-distance:0%}90%,100%{offset-distance:100%}}
-.trail-you{display:none;width:62px;height:62px;border:2.5px solid #F3EBDD;box-sizing:border-box;offset-distance:var(--you,0%);box-shadow:0 0 0 1px rgba(10,8,4,.3),inset 0 0 0 1px rgba(10,8,4,.3)}
-.trail-lab{position:absolute;left:0;right:0;top:206px;margin:0;text-align:center;font-size:24px;font-style:italic;color:#E6D3B0;text-shadow:0 1px 3px rgba(10,8,4,.6),0 2px 16px rgba(10,8,4,.6)}
-@media (prefers-reduced-motion: reduce){.anim .trail-arrow{animation:none;offset-distance:100%}}
+/* Follow the arrow: an arc of a circle of radius 260 whose centre is below the box; arrow and ring sit on arms turning
+   around that centre, from -32.6° to +32.6° (the arc's two ends). */
+.trail{position:absolute;left:50%;bottom:196px;width:390px;height:96px;margin-left:-195px;pointer-events:none}
+.trail-arm{position:absolute;left:195px;top:280px;width:0;height:0;transform:rotate(-32.6deg);will-change:transform}
+.trail-arrow,.trail-you{position:absolute;border-radius:50%;box-sizing:border-box}
+.trail-arrow{left:-17px;top:-277px;width:34px;height:34px;background:#D9C29A;box-shadow:0 0 0 5px rgba(217,194,154,.25),0 6px 18px -6px rgba(8,6,3,.7);display:grid;place-items:center}
+.anim .trail-arrow-arm{animation:trail-go var(--rdur,6s) linear both}
+@keyframes trail-go{0%,6%{transform:rotate(-32.6deg)}90%,100%{transform:rotate(32.6deg)}}
+.trail-you{display:none;left:-23px;top:-283px;width:46px;height:46px;border:2.5px solid #F3EBDD;box-shadow:0 0 0 1px rgba(10,8,4,.3),inset 0 0 0 1px rgba(10,8,4,.3)}
+@media (prefers-reduced-motion: reduce){.anim .trail-arrow-arm{animation:none;transform:rotate(32.6deg)}}
 /* Ready to record: the camera's own red button, with the plan on one side and skipping on the other. */
 .recb{position:absolute;left:50%;margin-left:-42px;bottom:40px;width:84px;height:84px;border-radius:50%;border:3px solid #F3EBDD;background:transparent;display:grid;place-items:center;cursor:pointer;padding:0;transition:transform .25s cubic-bezier(.3,.7,.2,1)}
 .recb span{width:66px;height:66px;border-radius:50%;background:#E0583F}
@@ -793,26 +793,28 @@ button.btn-p{border:0;cursor:pointer}
           <span class="lv" style="position: absolute; left: 22px; width: 64px; height: 2px"></span>
           <span class="lv" style="position: absolute; right: 22px; width: 64px; height: 2px"></span>
         </div>
-        <!-- Follow the arrow: the dashed trail is the whole move, the arrow travels it at the right pace (a slow turn, a slow
-             walk). In the guide, the ring is where the phone really is (motion sensors): keep it on the arrow. -->
-        <div class="trail {{ rec.trailKind }}" role="img" aria-label="{{ rec.trailText }}" style="--rdur: {{ rec.rdur }}; --wdur: {{ rec.wdur }}">
-          <svg viewBox="0 0 390 200" width="390" height="200" aria-hidden="true" style="position: absolute; inset: 0; overflow: visible">
-            <path d="{{ rec.trailPath }}" fill="none" stroke="rgba(10,8,4,.35)" stroke-width="7" stroke-linecap="round" stroke-dasharray="12 13"></path>
-            <path d="{{ rec.trailPath }}" fill="none" stroke="#F3EBDD" stroke-width="4" stroke-linecap="round" stroke-dasharray="12 13"></path>
-            <path d="{{ rec.trailEnd }}" fill="none" stroke="#D9C29A" stroke-width="3"></path>
-          </svg>
-          <span class="trail-you" style="offset-path: path('{{ rec.trailPath }}')"></span>
-          <span class="trail-arrow" style="offset-path: path('{{ rec.trailPath }}')"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#17130C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5"></path></svg></span>
-        </div>
-        <p class="dsp trail-lab">{{ rec.trailText }}</p>
       </div>
+      <!-- Follow the arrow (turns only), low on the screen so the picture stays clear: the dashed arc is the whole turn,
+           the arrow travels it at the right pace. In the guide, the ring is where the phone really is: keep it on the arrow.
+           Both move by rotating around the arc's centre, which the phone draws without redrawing the page. -->
+      <sc-if value="{{ rec.isTurn }}" hint-placeholder-val="{{ true }}">
+        <div class="trail" role="img" aria-label="{{ rec.trailText }}" style="--rdur: {{ rec.rdur }}">
+          <svg viewBox="0 0 390 96" width="390" height="96" aria-hidden="true" style="position: absolute; inset: 0; overflow: visible">
+            <path d="M55,61 A260,260 0 0,1 335,61" fill="none" stroke="rgba(10,8,4,.3)" stroke-width="5" stroke-linecap="round" stroke-dasharray="10 12"></path>
+            <path d="M55,61 A260,260 0 0,1 335,61" fill="none" stroke="#F3EBDD" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="10 12" opacity=".9"></path>
+            <circle cx="335" cy="61" r="8" fill="none" stroke="#D9C29A" stroke-width="2.5"></circle>
+          </svg>
+          <span class="trail-arm trail-you-arm"><span class="trail-you"></span></span>
+          <span class="trail-arm trail-arrow-arm"><span class="trail-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17130C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6.5l5.5 5.5-5.5 5.5"></path></svg></span></span>
+        </div>
+      </sc-if>
       <div aria-live="polite" style="position: absolute; left: 0; right: 0; bottom: 210px; height: 44px; display: grid; place-items: center; pointer-events: none">
         <span class="chip chip-ok gl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Velocità giusta</span>
         <span class="chip chip-piano"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14M16 5v14"></path></svg>Più piano</span>
         <span class="chip chip-dritto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h7M14 12h7"></path><circle cx="12" cy="12" r="2"></circle></svg>Tieni il telefono dritto</span>
         <span class="chip chip-luce gl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2"></path></svg>Poca luce: accendi le luci</span>
       </div>
-      <div class="gl free" style="--d: 120ms; position: absolute; left: 50%; margin-left: -50px; width: 100px; bottom: 146px; height: 40px; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums"><span class="rec-dot" aria-hidden="true" style="width: 9px; height: 9px; border-radius: 50%; background: #E0583F"></span>{{ rec.clock }}</div>
+      <div class="gl free" style="--d: 120ms; position: absolute; left: 50%; margin-left: -50px; width: 100px; bottom: 146px; height: 40px; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums"><span class="rec-dot" aria-hidden="true" style="width: 9px; height: 9px; border-radius: 50%; background: #E0583F"></span><span class="rec-clock">{{ rec.clock }}</span></div>
       <button type="button" class="stop" aria-label="Ferma la registrazione" onClick="{{ rec.stop }}"><span style="width: 30px; height: 30px; border-radius: 8px; background: #E0583F"></span></button>
       </sc-if>
       <!-- Ready: the camera stays on between one step and the next. Go to the point and press the red button. -->
@@ -1542,12 +1544,9 @@ class Component extends DCLogic {
         rdur: rp.rdur, wdur: rp.wdur, deg: (turn ? st.arc.gradi : 0) + 'deg',
         dashEnd: (553 * (1 - (turn ? st.arc.gradi : 0) / 360)).toFixed(1),
         avv: AVV[this.props.avviso] || 'auto',
-        text: ready ? st.text : st.title + ': ' + (st.kind === 'turn' ? `gira verso destra, ${turnWords(st.arc.gradi)}.` : 'cammina piano seguendo la freccia.'),
+        text: ready ? st.text : st.title + ': ' + (st.kind === 'turn' ? `gira verso destra, ${turnWords(st.arc.gradi)}.` : 'cammina piano, guardando avanti.'),
         passo: `Passo ${sc.i + 1} di ${steps.length}`,
-        trailKind: turn ? 'turn' : 'walk',
-        trailPath: turn ? 'M40,135 Q195,35 350,135' : 'M195,196 L195,8',
-        trailEnd: turn ? 'M350,124 a11,11 0 1,0 0.01,0 Z' : 'M195,-3 a11,11 0 1,0 0.01,0 Z',
-        trailText: turn ? 'Segui la freccia · ' + turnWords(st.arc.gradi) : 'Segui la freccia, piano',
+        trailText: turn ? 'Segui la freccia · ' + turnWords(st.arc.gradi) : '',
         ready, live: !ready, mode: ready ? 'is-ready' : 'is-live', clock: (this.state && this.state.clock) || '0:00',
         hasNote: ready && !!sc.note, note: sc.note || '', canSkip: ready && turn,
         hasRedo: !!prev, redoLabel: prev ? 'Rifai «' + prev.title + '»' : '',

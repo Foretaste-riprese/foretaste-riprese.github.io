@@ -323,6 +323,7 @@ function camShow() {
     const v = CAM.video = document.createElement('video');
     v.className = 'cam-live'; v.muted = true; v.playsInline = true; v.autoplay = true;
     v.setAttribute('playsinline', ''); v.setAttribute('muted', ''); v.setAttribute('aria-hidden', 'true');
+    v.addEventListener('pause', () => { if (CAM.stream && v.isConnected) v.play().catch(() => {}); });
   }
   const v = CAM.video;
   if (v.srcObject !== CAM.stream) v.srcObject = CAM.stream;
@@ -343,8 +344,9 @@ function recStart(sc) {
   r.onerror = (e) => report('Registrazione interrotta', String((e.error && (e.error.name || e.error.message)) || e));
   r.start(1000);
   CAM.t0 = Date.now();
-  comp.setState({ clock: '0:00' });
-  CAM.tick = setInterval(() => comp.setState({ clock: clock(Date.now() - CAM.t0) }), 500);
+  // the time ticks in its own text only: redrawing the whole page twice a second could stall the camera's picture
+  CAM.tick = setInterval(() => { const el = document.querySelector('#board .rec-clock'); if (el && el.firstChild) el.firstChild.nodeValue = clock(Date.now() - CAM.t0); }, 500);
+  if (CAM.video) CAM.video.play().catch(() => {});
   awake();
 }
 // Stop the take: with keep, it becomes a video in the sending queue as soon as the phone hands it over.
@@ -430,7 +432,7 @@ function turnBegin(sc) {
   if (st.kind !== 'turn') return;
   // the arrow reaches the end of the trail at 90% of the step's time (trail-go): 6% still, then 15° a second
   Object.assign(MOT, { on: true, yaw: 0, last: 0, arc: st.arc.gradi, done: false, t0: Date.now(), arrowMs: st.arc.gradi / 15 / 0.84 * 0.9 * 1000 });
-  document.body.style.setProperty('--you', '0%');
+  youAt(0);
   // no movement data within a second: no sensors here, the arrow alone guides and a sound marks the end of the turn
   MOT.check = setTimeout(() => {
     if (performance.now() - MOT.seen < 1000) { document.body.classList.add('gyro'); return; }
@@ -439,8 +441,7 @@ function turnBegin(sc) {
 }
 function turnTick() {
   if (!MOT.arc || MOT.done) return;
-  const p = Math.min(1, Math.abs(MOT.yaw) / MOT.arc);
-  document.body.style.setProperty('--you', (p * 100).toFixed(1) + '%');
+  youAt(Math.min(1, Math.abs(MOT.yaw) / MOT.arc));
   // done only when both are at the end: the phone has turned the whole way (a few degrees of grace) AND the arrow has
   // arrived. Slower than the arrow: it waits for the phone. Faster: it waits for the arrow.
   if (Math.abs(MOT.yaw) >= MOT.arc - 4 && Date.now() - MOT.t0 >= MOT.arrowMs && Date.now() - CAM.t0 > 1500 && CAM.rec) {
@@ -449,6 +450,18 @@ function turnTick() {
     const sc = comp.cur();
     setTimeout(() => { if (CAM.rec && comp.cur() === sc) comp.afterRec(sc, true); }, 350);
   }
+}
+// The ring: its own arm turned once a frame at most (the sensors speak 60 times a second; the page is not redrawn).
+let youP = 0, youQ = false;
+function youAt(p) {
+  youP = p;
+  if (youQ) return;
+  youQ = true;
+  requestAnimationFrame(() => {
+    youQ = false;
+    const arm = document.querySelector('#board .trail-you-arm');
+    if (arm) arm.style.transform = `rotate(${(-32.6 + youP * 65.2).toFixed(2)}deg)`;
+  });
 }
 function turnEnd() {
   MOT.on = false; MOT.arc = 0;
@@ -494,7 +507,7 @@ function sayFor(sc) {
   if (sc.type !== 'rec') return;
   const st = stepsOf(sc.key)[sc.i];
   if (sc.ready) say((sc.note ? sc.note + ' ' : '') + st.text.replace(/[()]/g, '').replace(/\bpremi Registra\b/g, 'tocca il tasto rosso').replace(/\bPremi Registra\b/g, 'Tocca il tasto rosso'));
-  else say(st.kind === 'turn' ? 'Segui la freccia.' : 'Segui la freccia, piano. Tocca stop quando arrivi.');
+  else say(st.kind === 'turn' ? 'Segui la freccia.' : 'Cammina piano. Tocca stop quando arrivi.');
 }
 
 // ---------- hooks into the guide ----------

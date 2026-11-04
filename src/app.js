@@ -272,13 +272,37 @@ function askCasa(then, err) {
   setTimeout(() => { const c = $('#ov-casa'); if (c) c.focus(); }, 350);
 }
 // The end: no uploading to do, only to wait for the videos still travelling.
+// The end: the photos still travelling (if any), then the client's opinion right here: five stars with an optional
+// note, and the questionnaire, opened with this property already in.
+const END = { rating: 0, text: '', sent: false };
+const STAR = (on) => `<svg width="30" height="30" viewBox="0 0 24 24" fill="${on ? '#D9C29A' : 'none'}" stroke="#D9C29A" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.1 1.1 5.9L12 16.6 6.7 19.5l1.1-5.9L3.4 9.5l6-.8z"></path></svg>`;
+const STAR_WORDS = ['Tocca una stella', 'Da migliorare', 'Così così', 'Buona', 'Molto buona', 'Ottima'];
+// Sends the end's feedback once, if there are stars (the note is optional)
+function endFeedback() {
+  if (!$('#end-fb') || END.sent || !END.rating) return false;
+  const t = $('#end-text'); if (t) END.text = t.value;
+  if (CFG.scriptUrl) call('feedback', { rating: END.rating, text: String(END.text || '').slice(0, 1000), casa: casa() }).catch((e) => console.warn('feedback non inviato:', e));
+  END.sent = true;
+  if (comp) comp.setState({ fb: Object.assign({}, (comp.state && comp.state.fb) || {}, { open: false, done: true }) });   // the header's pill says thank you too
+  return true;
+}
+function questUrl() { const c = casa(); return 'questionario/' + (c ? '?casa=' + encodeURIComponent(c).replace(/%20/g, '+') : ''); }
 function drawEnd() {
-  const p = pending();
+  const p = pending(), fb = (comp && comp.state && comp.state.fb) || {}, done = END.sent || fb.sent || fb.done;
   sheet(`<div class="o-top"><div style="display: flex; flex-direction: column; gap: 8px"><span class="o-lab">Alla fine</span><h2 class="o-h" id="ov-title">${p.length ? 'Quasi <em>fatto</em>' : 'Grazie, <em>è tutto</em>'}</h2></div>${X}</div>
     <p class="o-p" style="color: var(--ink)">${p.length
       ? `Stiamo ancora mandando ${things(p)} (${fmtMB(p.reduce((a, x) => a + x.size - x.sent, 0))}). Tieni aperta questa pagina, con il Wi-Fi se puoi, finché in alto compare «tutto arrivato».`
-      : Q.length ? `Abbiamo ricevuto tutto: ${things(Q)}. Puoi chiudere la pagina.` : 'Hai finito le riprese.'}</p>
-    <div class="o-row"><button type="button" class="o-btn p" data-a="close">${p.length ? 'Va bene' : 'Chiudi'}</button></div>
+      : Q.length ? `Abbiamo ricevuto tutto: ${things(Q)}.` : 'Hai finito le riprese.'}</p>
+    <div class="fb-row" id="end-fb">${done
+      ? '<p class="o-p" style="color: var(--ink)">Grazie per il feedback: ci aiuta a migliorare la guida.</p>'
+      : `<span class="o-lab">Com’è stata la guida?</span>
+      <div role="radiogroup" aria-label="Valutazione della guida, da 1 a 5 stelle" style="display: flex; gap: 2px; margin-left: -7px">${[1, 2, 3, 4, 5].map((n) => `<button type="button" role="radio" class="end-star" data-a="star" data-n="${n}" aria-checked="${n === END.rating}" aria-label="${n === 1 ? '1 stella' : n + ' stelle'}">${STAR(n <= END.rating)}</button>`).join('')}</div>
+      <span style="font-family: var(--display); font-style: italic; font-size: 16px; color: var(--champ)">${STAR_WORDS[END.rating]}</span>
+      ${END.rating ? `<textarea class="o-in" id="end-text" rows="3" maxlength="1000" placeholder="Cosa possiamo migliorare? (se vuoi)" style="padding: 12px 16px; min-height: 84px; resize: none">${esc(END.text)}</textarea>
+      <button type="button" class="o-btn g" data-a="fbsend" style="align-self: flex-start; flex: none; min-height: 46px">Invia il feedback</button>` : ''}`}</div>
+    <div class="o-row"><button type="button" class="o-btn p" data-a="quest">Rispondi al questionario</button></div>
+    <p class="o-p" style="margin-top: -6px">Qualche domanda sulla prova: le risposte si salvano mentre scrivi.</p>
+    <div class="o-row"><button type="button" class="o-btn g" data-a="close">${p.length ? 'Va bene' : 'Chiudi'}</button></div>
     <button type="button" class="o-link" data-a="restart">Ricomincia la guida</button>`);
 }
 $('#gal').addEventListener('change', (e) => {
@@ -292,8 +316,16 @@ $('#gal').addEventListener('change', (e) => {
 $('#sheet').addEventListener('click', (e) => {
   const b = e.target.closest('[data-a]'); if (!b) return;
   const a = b.dataset.a;
-  if (a === 'close') closeSheet();
+  if (a === 'close') { endFeedback(); closeSheet(); }
   if (a === 'restart') { closeSheet(); if (comp) comp.enter({ type: 'setup', i: 0 }, []); }
+  if (a === 'star') { const t = $('#end-text'); if (t) END.text = t.value; END.rating = Number(b.dataset.n) || 0; drawEnd(); return; }
+  if (a === 'fbsend') { if (endFeedback()) drawEnd(); return; }
+  if (a === 'quest') {
+    endFeedback();   // stars given but «Invia» not tapped: they are sent anyway
+    // with photos still travelling, the questionnaire opens beside the guide, so the sending goes on
+    if (pending().length) window.open(questUrl(), '_blank', 'noopener'); else location.href = questUrl();
+    return;
+  }
   if (a === 'casa') {
     const c = $('#ov-casa'), v = c ? c.value.trim() : '';
     if (!v) { askCasa(afterCasa, 'Scrivi l’indirizzo: senza, non sappiamo di che casa sono i video.'); return; }
